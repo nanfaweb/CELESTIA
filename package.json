@@ -1,0 +1,25 @@
+{
+  "name": "celestia",
+  "version": "1.0.0",
+  "description": "CELESTIA - The aim of this project is to develop an interactive database-driven\r website that provides users with scientific data on stars, planets, galaxies, and\r other celestial bodies. The platform will allow users to explore various celestial\r systems, read scientific data, and engage with the content by creating their own\r virtual solar systems. By integrating user interactivity with astronomical data, we\r aim to make space exploration engaging and educational for users.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nanfaweb/CELESTIA.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nanfaweb/CELESTIA/issues"
+  },
+  "homepage": "https://github.com/nanfaweb/CELESTIA#readme",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mssql": "^11.0.1"
+  }
+}
