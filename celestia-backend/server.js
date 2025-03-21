@@ -1,11 +1,11 @@
 const express = require('express');
 const sql = require('mssql');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
 
-require('dotenv').config();
 const config = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -14,9 +14,10 @@ const config = {
     options: {
         trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === "true",
         enableArithAbort: true,
-        instancename: process.env.DB_INSTANCE_NAME || "SQLEXPRESS"
+        // When using a fixed port, remove instanceName if not needed
+        // instanceName: process.env.DB_INSTANCE_NAME || "SQLEXPRESS"
     },
-    port: process.env.DB_PORT || 1433
+    port: Number(process.env.DB_PORT) || 1433
 };
 
 app.get('/CelestialBodies', async (req, res) => {
