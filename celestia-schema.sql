@@ -122,6 +122,7 @@
 
 CREATE DATABASE Celestia;
 USE Celestia;
+GO
 
 -- Create Users table
 CREATE TABLE Users (
@@ -131,6 +132,7 @@ CREATE TABLE Users (
     PasswordHash NVARCHAR(255) NOT NULL,
     CreatedAt DATETIME2 DEFAULT GETDATE()
 );
+GO
 
 -- Create UserProfiles table
 CREATE TABLE UserProfiles (
@@ -140,6 +142,7 @@ CREATE TABLE UserProfiles (
     LastName NVARCHAR(50),
     Bio NVARCHAR(500),
 );
+GO
 
 -- Create Friends table for managing user friendships
 CREATE TABLE Friends (
@@ -150,6 +153,7 @@ CREATE TABLE Friends (
     RequestedAt DATETIME2 DEFAULT GETDATE(),
     RespondedAt DATETIME2
 );
+GO
 
 -- Create CelestialBodies table for storing celestial data
 CREATE TABLE CelestialBodies (
@@ -165,6 +169,7 @@ CREATE TABLE CelestialBodies (
     DiscoveryDate DATE,
     CreatedByUserID INT FOREIGN KEY REFERENCES Users(UserID)
 );
+GO
 
 -- Create UserNotes table for storing user notes on celestial bodies
 CREATE TABLE UserNotes (
@@ -175,6 +180,7 @@ CREATE TABLE UserNotes (
     CreatedAt DATETIME2 DEFAULT GETDATE(),
     UpdatedAt DATETIME2
 );
+GO
 
 -- Create UserPlanets table for storing user-created custom planets
 CREATE TABLE UserPlanets (
@@ -189,6 +195,7 @@ CREATE TABLE UserPlanets (
     CreatedAt DATETIME2 DEFAULT GETDATE(),
     UpdatedAt DATETIME2
 );
+GO
 
 -- Create UserPlanetVisibility table to manage visibility of user-created planets to friends
 CREATE TABLE UserPlanetVisibility (
@@ -197,3 +204,4 @@ CREATE TABLE UserPlanetVisibility (
     FriendID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
     CanView BIT DEFAULT 0
 );
+GO
