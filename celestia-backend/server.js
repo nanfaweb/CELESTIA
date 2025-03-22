@@ -1,9 +1,15 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
-const { pool } = require('./db');
-const usersRouter = require('./routes/users');
-const profilesRouter = require('./routes/userProfiles');
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+const { pool } = require("./db");
+
+const usersRouter = require("./routes/users");
+const profilesRouter = require("./routes/userprofiles");
+const friendsRouter = require("./routes/friends");
+const celestialBodiesRouter = require("./routes/celestialbodies");
+const userNotesRouter = require("./routes/usernotes");
+const userPlanetsRouter = require("./routes/userplanets");
+const userPlanetVisibilityRouter = require("./routes/userplanetvisibility");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,19 +18,24 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Mount API routes for Users and UserProfiles
-app.use('/api/users', usersRouter);
-app.use('/api/userprofiles', profilesRouter);
+// Mount API routes
+app.use("/api/users", usersRouter);
+app.use("/api/profiles", profilesRouter);
+app.use("/api/friends", friendsRouter);
+app.use("/api/celestialbodies", celestialBodiesRouter);
+app.use("/api/usernotes", userNotesRouter);
+app.use("/api/userplanets", userPlanetsRouter);
+app.use("/api/userplanetvisibility", userPlanetVisibilityRouter);
 
-// Simple test route
-app.get('/', (req, res) => {
+// Test route
+app.get("/", (req, res) => {
   res.json({ message: "Celestia API is running." });
 });
 
 // Start the server
 app.listen(PORT, async () => {
   try {
-    await pool; // Ensures the database connection is established
+    await pool;
     console.log(`Server is running on port ${PORT}`);
   } catch (error) {
     console.error("Database connection error:", error);

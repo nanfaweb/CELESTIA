@@ -26,11 +26,12 @@ router.post("/", async (req, res) => {
 // READ all users
 router.get("/", async (req, res) => {
   try {
-    const result = await (await pool).request().query("SELECT * FROM Users");
-    res.json({ success: true, data: result.recordset });
+    const poolConn = await pool; // Ensure connection is awaited
+    const result = await poolConn.request().query("SELECT * FROM Users");
+    res.json(result.recordset);
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

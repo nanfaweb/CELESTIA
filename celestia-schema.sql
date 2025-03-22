@@ -205,3 +205,65 @@ CREATE TABLE UserPlanetVisibility (
     CanView BIT DEFAULT 0
 );
 GO
+
+----- INSERTING DUMMY DATA -----
+
+-- Insert dummy data into the Users table
+INSERT INTO Users (Username, Email, PasswordHash)
+VALUES 
+  ('Afnan', 'afnan@example.com', 'dummyhash1'),
+  ('Saad', 'saad@example.com', 'dummyhash2'),
+  ('Zuhair', 'zuhair@example.com', 'dummyhash3');
+GO
+
+-- Insert dummy data into the UserProfiles table
+-- Assuming UserIDs 1, 2, 3 exist from the previous insertion
+INSERT INTO UserProfiles (UserID, FirstName, LastName, Bio)
+VALUES 
+  (1, 'Afnan', 'Asif', 'Bio for Afnan'),
+  (2, 'Saad', 'Riaz', 'Bio for Saad'),
+  (3, 'Zuhair', 'Ahmed', 'Bio for Zuhair');
+GO
+
+-- Insert dummy data into the Friends table
+-- Example friendships among these users
+INSERT INTO Friends (UserID, FriendID, Status, RequestedAt, RespondedAt)
+VALUES 
+  (1, 2, 'Accepted', GETDATE(), GETDATE()),
+  (2, 3, 'Pending', GETDATE(), NULL),
+  (1, 3, 'Rejected', GETDATE(), GETDATE());
+GO
+
+-- Insert dummy data into the CelestialBodies table
+-- Note: Reduced numeric values to avoid overflow (e.g., using e20 instead of e24)
+INSERT INTO CelestialBodies 
+  (Name, Type, Mass, Diameter, Gravity, OrbitalPeriod, Description, DiscoveredBy, DiscoveryDate, CreatedByUserID)
+VALUES
+  ('Earth', 'Planet', 5972000.00, 12742.00, 9.81, 365.25, 'Our home planet', 'Ancient', '2000-01-01', 1),
+  ('Mars', 'Planet', 639000.00, 6779.00, 3.71, 687.00, 'The Red Planet', 'Ancient', '2000-01-01', 2);
+GO
+
+-- Insert dummy data into the UserNotes table
+-- Make sure the BodyIDs (1 and 2) exist from the CelestialBodies insertion
+INSERT INTO UserNotes (UserID, BodyID, NoteText)
+VALUES
+  (1, 4, 'Earth is our beautiful home.'),
+  (2, 5, 'Mars is fascinating.');
+GO
+
+-- Insert dummy data into the UserPlanets table
+-- Use lower numeric values for custom planets
+INSERT INTO UserPlanets (UserID, Name, Mass, Diameter, Gravity, OrbitalPeriod, Description, CreatedAt)
+VALUES 
+  (1, 'Afnan Planet', 50000.00, 10000.00, 9.5, 400.00, 'Custom planet created by Afnan', GETDATE()),
+  (2, 'Saad Planet', 48000.00, 9800.00, 9.2, 360.00, 'Custom planet created by Saad', GETDATE()),
+  (3, 'Zuhair Planet', 52000.00, 10200.00, 9.8, 420.00, 'Custom planet created by Zuhair', GETDATE());
+GO
+
+-- Insert dummy data into the UserPlanetVisibility table
+-- Ensure that the UserPlanetIDs (1, 2, 3) exist from the UserPlanets insertion.
+INSERT INTO UserPlanetVisibility (UserPlanetID, FriendID, CanView)
+VALUES 
+  (1, 2, 1),  -- Afnan's planet visible to Saad
+  (3, 1, 1);  -- Zuhair's planet visible to Afnan
+GO
