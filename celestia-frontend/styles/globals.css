@@ -1,4 +1,3 @@
-/* styles/globals.css */
 body, html {
   margin: 0;
   padding: 0;
@@ -28,6 +27,10 @@ body, html {
 .auth-header {
   font-size: 2.5rem;
   font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.auth-toggle {
   margin-bottom: 1rem;
 }
 
