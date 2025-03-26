@@ -3,84 +3,104 @@ body, html {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #000000, #1E022D);
+  color: #fff;
 }
 
-.container {
+.auth-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, black, #1E022D);
-  color: white;
 }
 
-.form-container {
-  background: rgba(46, 46, 46, 0.5);  /* Semi-transparent background */
-  backdrop-filter: blur(10px);         /* Apply a blur for the glass effect */
-  border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border for definition */
-  padding: 2.5rem;
+.auth-box {
+  background: rgba(46, 46, 46, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  padding: 2rem;
   width: 400px;
   text-align: center;
+  animation: fadeIn 1s ease-in-out;
 }
 
-.glass-header {
+.auth-header {
   font-size: 2.5rem;
   font-weight: bold;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-.form-title {
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
+.auth-toggle button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  margin: 0 1rem;
+  cursor: pointer;
+  transition: color 0.3s;
 }
 
-.form-container form {
+.auth-toggle button.active,
+.auth-toggle button:hover {
+  color: #7E5A9B;
+}
+
+form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
-.form-container input {
+form input {
   padding: 0.75rem;
   border: 1px solid #444;
   border-radius: 5px;
   background-color: #444;
-  color: white;
+  color: #fff;
+  transition: border-color 0.3s;
 }
 
-.submit-button,
-.google-button {
-  width: 100%;
+form input:focus {
+  border-color: #7E5A9B;
+  outline: none;
+}
+
+.auth-button {
   padding: 0.75rem;
+  background-color: #7E5A9B;
   border: none;
   border-radius: 5px;
+  color: #fff;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  font-weight: bold;
+  transition: background-color 0.3s;
 }
 
-.submit-button {
-  background-color: #7E5A9B;
-  color: white;
-}
-
-.submit-button:hover {
+.auth-button:hover {
   background-color: #6c4a85;
 }
 
+.divider {
+  margin: 1rem 0;
+}
+
 .google-button {
-  background-color: white;
-  color: black;
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #fff;
+  color: #000;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .google-button:hover {
   background-color: #ddd;
 }
 
-.or-text {
-  text-align: center;
-  margin: 1rem 0;
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }

@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const { pool } = require("../db"); // Assumes you have a db.js file that exports the connection pool
+const passport = require("passport");
+const session = require("express-session");
+require("dotenv").config();
 
 // CREATE a new user
 router.post("/", async (req, res) => {
@@ -82,5 +85,27 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  (req, res) => {
+    // Redirect to frontend with token/session
+    console.log("Hello?");
+    res.redirect(`http://localhost:3000/dashboard`);
+  }
+);
+
+router.get("/logout", (req, res) => {
+  req.logout(() => {
+    res.redirect("/");
+  });
+});
+
 
 module.exports = router;

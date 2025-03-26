@@ -12,6 +12,10 @@ export default function SignUp() {
     alert(`Username: ${formData.username}\nEmail: ${formData.email}\nPassword: ${formData.password}`);
   };
 
+  const handleGoogleSignIn = () => {
+    window.location.href = "http://localhost:3001/api/users/google";
+  };
+
   return (
     <div className="container">
       <div className="form-container">
@@ -44,7 +48,7 @@ export default function SignUp() {
           </button>
         </form>
         <div className="or-text">or</div>
-        <button type="button" className="google-button">
+        <button type="button" className="google-button" onClick={handleGoogleSignIn}>
           Sign in with Google
         </button>
       </div>

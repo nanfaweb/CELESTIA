@@ -2,6 +2,10 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const { pool } = require("./db");
+const passport = require("passport");
+const session = require("express-session");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+require("dotenv").config();
 
 const usersRouter = require("./routes/users");
 const profilesRouter = require("./routes/userprofiles");
@@ -13,6 +17,35 @@ const userPlanetVisibilityRouter = require("./routes/userplanetvisibility");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Middleware for session handling
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Configure Google OAuth Strategy
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "/api/users/google/callback",
+    },
+    (accessToken, refreshToken, profile, done) => {
+      // Here, save user info in the database if needed
+      return done(null, profile);
+    }
+  )
+);
+
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((obj, done) => done(null, obj));
 
 // Middleware
 app.use(cors());
