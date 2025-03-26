@@ -121,6 +121,8 @@
 ----------------------------------- DATABASE QUERIES START HERE -----------------------------------
 
 CREATE DATABASE Celestia;
+go
+
 USE Celestia;
 GO
 
@@ -216,6 +218,8 @@ VALUES
   ('Zuhair', 'zuhair@example.com', 'dummyhash3');
 GO
 
+select * from users
+
 -- Insert dummy data into the UserProfiles table
 -- Assuming UserIDs 1, 2, 3 exist from the previous insertion
 INSERT INTO UserProfiles (UserID, FirstName, LastName, Bio)
@@ -224,6 +228,8 @@ VALUES
   (2, 'Saad', 'Riaz', 'Bio for Saad'),
   (3, 'Zuhair', 'Ahmed', 'Bio for Zuhair');
 GO
+
+select * from UserProfiles
 
 -- Insert dummy data into the Friends table
 -- Example friendships among these users
@@ -234,6 +240,8 @@ VALUES
   (1, 3, 'Rejected', GETDATE(), GETDATE());
 GO
 
+select * from Friends
+
 -- Insert dummy data into the CelestialBodies table
 -- Note: Reduced numeric values to avoid overflow (e.g., using e20 instead of e24)
 INSERT INTO CelestialBodies 
@@ -243,13 +251,17 @@ VALUES
   ('Mars', 'Planet', 639000.00, 6779.00, 3.71, 687.00, 'The Red Planet', 'Ancient', '2000-01-01', 2);
 GO
 
+select * from CelestialBodies
+
 -- Insert dummy data into the UserNotes table
 -- Make sure the BodyIDs (1 and 2) exist from the CelestialBodies insertion
 INSERT INTO UserNotes (UserID, BodyID, NoteText)
 VALUES
-  (1, 4, 'Earth is our beautiful home.'),
-  (2, 5, 'Mars is fascinating.');
+  (1, 1, 'Earth is our beautiful home.'),
+  (2, 2, 'Mars is fascinating.');
 GO
+
+select * from UserNotes
 
 -- Insert dummy data into the UserPlanets table
 -- Use lower numeric values for custom planets
@@ -260,10 +272,16 @@ VALUES
   (3, 'Zuhair Planet', 52000.00, 10200.00, 9.8, 420.00, 'Custom planet created by Zuhair', GETDATE());
 GO
 
+select * from UserPlanets
+
 -- Insert dummy data into the UserPlanetVisibility table
 -- Ensure that the UserPlanetIDs (1, 2, 3) exist from the UserPlanets insertion.
 INSERT INTO UserPlanetVisibility (UserPlanetID, FriendID, CanView)
 VALUES 
-  (1, 2, 1),  -- Afnan's planet visible to Saad
-  (3, 1, 1);  -- Zuhair's planet visible to Afnan
+  (1, 2, 1);  -- Afnan's planet visible to Saad
 GO
+
+select * from UserPlanetVisibility
+
+--drop database Celestia
+--use master
