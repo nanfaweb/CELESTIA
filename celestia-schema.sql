@@ -224,7 +224,18 @@ CREATE TABLE UserPlanetVisibility (
     FriendID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
     CanView BIT NOT NULL DEFAULT 0,
     -- Ensure unique visibility entry per planet-friend pair
-    CONSTRAINT UQ_PlanetVisibility UNIQUE (UserPlanetID, FriendID)
+    CONSTRAINT UQ_PlanetVisibility UNIQUE (UserPlanetID, FriendID),
+    -- Add constraint to check that user creating this visibility record
+    -- has an accepted friendship with the FriendID
+    CONSTRAINT CHK_ValidFriendship CHECK (
+        EXISTS (
+            SELECT 1 FROM Friends F
+            JOIN UserPlanets UP ON F.UserID = UP.UserID 
+            WHERE UP.UserPlanetID = UserPlanetVisibility.UserPlanetID
+            AND F.FriendID = UserPlanetVisibility.FriendID
+            AND F.Status = 'Accepted'
+        )
+    )
 );
 GO
 
