@@ -239,6 +239,83 @@ CREATE TABLE UserPlanetVisibility (
 );
 GO
 
+----- VIEWS -----
+
+CREATE VIEW ValidFriends AS
+SELECT 
+    UserID, 
+    FriendID
+FROM 
+    Friends
+WHERE 
+    Status = 'Accepted';
+GO
+
+
+---- Procedures -----
+
+CREATE PROCEDURE GrantPlanetVisibility
+    @UserPlanetID INT,
+    @FriendID INT,
+    @CanView BIT = 1
+AS
+BEGIN
+    -- Check if this is a valid friendship
+    IF EXISTS (
+        SELECT 1 FROM Friends F
+        JOIN UserPlanets UP ON F.UserID = UP.UserID 
+        WHERE UP.UserPlanetID = @UserPlanetID
+        AND F.FriendID = @FriendID
+        AND F.Status = 'Accepted'
+    )
+    BEGIN
+        -- Insert or update visibility record
+        MERGE UserPlanetVisibility AS target
+        USING (SELECT @UserPlanetID, @FriendID, @CanView) AS source (UserPlanetID, FriendID, CanView)
+        ON (target.UserPlanetID = source.UserPlanetID AND target.FriendID = source.FriendID)
+        WHEN MATCHED THEN
+            UPDATE SET CanView = source.CanView
+        WHEN NOT MATCHED THEN
+            INSERT (UserPlanetID, FriendID, CanView)
+            VALUES (source.UserPlanetID, source.FriendID, source.CanView);
+            
+        RETURN 0; -- Success
+    END
+    ELSE
+    BEGIN
+        RAISERROR('Cannot grant visibility: No accepted friendship exists between these users', 16, 1);
+        RETURN 1; -- Error
+    END
+END;
+GO
+
+---- Functions -----
+
+-- Function to check if a user can view a specific planet
+CREATE FUNCTION CanUserViewPlanet(@UserID INT, @UserPlanetID INT)
+RETURNS BIT
+AS
+BEGIN
+    DECLARE @CanView BIT = 0;
+    
+    -- Check if the user owns the planet
+    IF EXISTS (SELECT 1 FROM UserPlanets WHERE UserPlanetID = @UserPlanetID AND UserID = @UserID)
+        SET @CanView = 1;
+    -- Check if the user has been granted visibility
+    ELSE IF EXISTS (
+        SELECT 1 FROM UserPlanetVisibility V
+        JOIN Friends F ON V.FriendID = @UserID
+        JOIN UserPlanets P ON V.UserPlanetID = P.UserPlanetID AND F.UserID = P.UserID
+        WHERE V.UserPlanetID = @UserPlanetID
+        AND F.Status = 'Accepted'
+        AND V.CanView = 1
+    )
+        SET @CanView = 1;
+        
+    RETURN @CanView;
+END;
+GO
+
 ----- INSERTING DUMMY DATA -----
 
 -- Insert dummy data into the Users table
