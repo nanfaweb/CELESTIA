@@ -130,81 +130,101 @@ GO
 CREATE TABLE Users (
     UserID INT IDENTITY(1,1) PRIMARY KEY,
     Username NVARCHAR(50) NOT NULL UNIQUE,
-    Email NVARCHAR(100) NOT NULL UNIQUE,
-    PasswordHash NVARCHAR(255) NOT NULL,
-    CreatedAt DATETIME2 DEFAULT GETDATE()
+    Email NVARCHAR(100) NOT NULL UNIQUE CHECK (Email LIKE '%_@__%.__%'), -- Basic email format validation
+    PasswordHash NVARCHAR(255) NOT NULL 
+        CHECK (
+            LEN(PasswordHash) >= 8 AND                   -- At least 8 characters
+            PasswordHash LIKE '%[A-Z]%' AND              -- At least one uppercase letter
+            PasswordHash LIKE '%[a-z]%' AND              -- At least one lowercase letter
+            PasswordHash LIKE '%[!@#$%^&*()_+\-=\[\]{};'':"\\|,.<>\/?]%'  -- At least one special character
+        ),
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE() -- Ensure timestamp is never null
 );
 GO
 
 -- Create UserProfiles table
 CREATE TABLE UserProfiles (
     ProfileID INT IDENTITY(1,1) PRIMARY KEY,
-    UserID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
-    FirstName NVARCHAR(50),
-    LastName NVARCHAR(50),
-    Bio NVARCHAR(500),
+    UserID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
+    FirstName NVARCHAR(50) NOT NULL DEFAULT '',
+    LastName NVARCHAR(50) NOT NULL DEFAULT '',
+    Bio NVARCHAR(500) NOT NULL DEFAULT ''
 );
 GO
 
 -- Create Friends table for managing user friendships
 CREATE TABLE Friends (
     FriendshipID INT IDENTITY(1,1) PRIMARY KEY,
-    UserID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
-    FriendID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
-    Status NVARCHAR(20) CHECK (Status IN ('Pending', 'Accepted', 'Rejected')),
-    RequestedAt DATETIME2 DEFAULT GETDATE(),
-    RespondedAt DATETIME2
+    UserID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
+    FriendID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
+    Status NVARCHAR(20) NOT NULL CHECK (Status IN ('Pending', 'Accepted', 'Rejected')),
+    RequestedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    RespondedAt DATETIME2,
+    -- Prevent self-friendship
+    CONSTRAINT CHK_NoSelfFriendship CHECK (UserID <> FriendID),
+    -- Ensure unique friendships (prevent duplicates)
+    CONSTRAINT UQ_Friendship UNIQUE (UserID, FriendID)
 );
 GO
 
 -- Create CelestialBodies table for storing celestial data
 CREATE TABLE CelestialBodies (
     BodyID INT IDENTITY(1,1) PRIMARY KEY,
-    Name NVARCHAR(100) NOT NULL,
-    Type NVARCHAR(50) CHECK (Type IN ('Planet', 'Star', 'Moon', 'Asteroid', 'Comet', 'Dwarf Planet')),
-    Mass DECIMAL(30,10),
-    Diameter DECIMAL(20,10),
-    Gravity DECIMAL(10,4),
-    OrbitalPeriod DECIMAL(15,5),
-    Description NVARCHAR(MAX),
-    DiscoveredBy NVARCHAR(100),
-    DiscoveryDate DATE,
-    CreatedByUserID INT FOREIGN KEY REFERENCES Users(UserID)
+    Name NVARCHAR(100) NOT NULL CHECK (LEN(TRIM(Name)) > 0),
+    Type NVARCHAR(50) NOT NULL CHECK (Type IN ('Planet', 'Star', 'Moon', 'Asteroid', 'Comet', 'Dwarf Planet')),
+    Mass DECIMAL(30,10) CHECK (Mass > 0),
+    Diameter DECIMAL(20,10) CHECK (Diameter > 0),
+    Gravity DECIMAL(10,4) CHECK (Gravity >= 0),
+    OrbitalPeriod DECIMAL(15,5) CHECK (OrbitalPeriod >= 0),
+    Description NVARCHAR(MAX) NOT NULL DEFAULT '',
+    DiscoveredBy NVARCHAR(100) NOT NULL DEFAULT '',
+    DiscoveryDate DATE CHECK (DiscoveryDate <= GETDATE()),
+    CreatedByUserID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
+    -- Ensure name uniqueness per celestial type
+    CONSTRAINT UQ_CelestialBodyName UNIQUE (Name, Type)
 );
 GO
 
 -- Create UserNotes table for storing user notes on celestial bodies
 CREATE TABLE UserNotes (
     NoteID INT IDENTITY(1,1) PRIMARY KEY,
-    UserID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
-    BodyID INT NOT NULL FOREIGN KEY REFERENCES CelestialBodies(BodyID),
-    NoteText NVARCHAR(MAX),
-    CreatedAt DATETIME2 DEFAULT GETDATE(),
-    UpdatedAt DATETIME2
+    UserID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
+    BodyID INT NOT NULL FOREIGN KEY REFERENCES CelestialBodies(BodyID) ON DELETE CASCADE,
+    NoteText NVARCHAR(MAX) NOT NULL CHECK (LEN(TRIM(NoteText)) > 0),
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME2,
+    -- Ensure UpdatedAt is after CreatedAt
+    CONSTRAINT CHK_NotesDateValid CHECK (UpdatedAt IS NULL OR UpdatedAt >= CreatedAt)
 );
 GO
 
 -- Create UserPlanets table for storing user-created custom planets
 CREATE TABLE UserPlanets (
     UserPlanetID INT IDENTITY(1,1) PRIMARY KEY,
-    UserID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
-    Name NVARCHAR(100) NOT NULL,
-    Mass DECIMAL(30,10),
-    Diameter DECIMAL(20,10),
-    Gravity DECIMAL(10,4),
-    OrbitalPeriod DECIMAL(15,5),
-    Description NVARCHAR(MAX),
-    CreatedAt DATETIME2 DEFAULT GETDATE(),
-    UpdatedAt DATETIME2
+    UserID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
+    Name NVARCHAR(100) NOT NULL CHECK (LEN(TRIM(Name)) > 0),
+    Mass DECIMAL(30,10) CHECK (Mass > 0),
+    Diameter DECIMAL(20,10) CHECK (Diameter > 0),
+    Gravity DECIMAL(10,4) CHECK (Gravity >= 0),
+    OrbitalPeriod DECIMAL(15,5) CHECK (OrbitalPeriod >= 0),
+    Description NVARCHAR(MAX) NOT NULL DEFAULT '',
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME2,
+    -- Ensure UpdatedAt is after CreatedAt
+    CONSTRAINT CHK_PlanetDateValid CHECK (UpdatedAt IS NULL OR UpdatedAt >= CreatedAt),
+    -- Ensure unique planet names per user
+    CONSTRAINT UQ_UserPlanetName UNIQUE (UserID, Name)
 );
 GO
 
 -- Create UserPlanetVisibility table to manage visibility of user-created planets to friends
 CREATE TABLE UserPlanetVisibility (
     VisibilityID INT IDENTITY(1,1) PRIMARY KEY,
-    UserPlanetID INT NOT NULL FOREIGN KEY REFERENCES UserPlanets(UserPlanetID),
-    FriendID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
-    CanView BIT DEFAULT 0
+    UserPlanetID INT NOT NULL FOREIGN KEY REFERENCES UserPlanets(UserPlanetID) ON DELETE CASCADE,
+    FriendID INT NOT NULL FOREIGN KEY REFERENCES Users(UserID) ON DELETE CASCADE,
+    CanView BIT NOT NULL DEFAULT 0,
+    -- Ensure unique visibility entry per planet-friend pair
+    CONSTRAINT UQ_PlanetVisibility UNIQUE (UserPlanetID, FriendID)
 );
 GO
 
