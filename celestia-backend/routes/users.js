@@ -9,32 +9,68 @@ require("dotenv").config();
 router.post("/", async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    // Here, in production, hash the password before storing!
+
+    // Validate email format
+    if (!email.includes("@") || (!email.includes(".com") && !email.includes("."))) {
+      return res.status(400).json({ success: false, message: "Invalid email format" });
+    }
+
+    // Validate password (at least 8 characters, alphanumeric)
+    if (!password || password.length < 8 || !/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
+      return res.status(400).json({ success: false, message: "Password must be at least 8 alphanumeric characters" });
+    }
+
+    // Store password as plain text (for testing)
     const result = await (await pool).request()
       .input("username", username)
       .input("email", email)
-      .input("password", password)
+      .input("password", password) // No hashing
       .query(`
         INSERT INTO Users (Username, Email, PasswordHash)
         VALUES (@username, @email, @password);
         SELECT SCOPE_IDENTITY() AS UserID;
       `);
+
     res.status(201).json({ success: true, userID: result.recordset[0].UserID });
+
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// READ all users
-router.get("/", async (req, res) => {
+// Login registered users
+router.post("/login", async (req, res) => {
   try {
-    const poolConn = await pool; // Ensure connection is awaited
-    const result = await poolConn.request().query("SELECT * FROM Users");
-    res.json(result.recordset);
+    console.log("Login request received:", req.body); // Log request data
+
+    const { email, password } = req.body;
+
+    const result = await (await pool).request()
+      .input("email", email)
+      .query("SELECT * FROM Users WHERE Email = @email");
+
+    console.log("Database query result:", result.recordset); // Log database response
+
+    if (result.recordset.length === 0) {
+      console.log("User not found for email:", email);
+      return res.status(401).json({ success: false, message: "User not found" });
+    }
+
+    const user = result.recordset[0];
+    console.log("Stored password:", user.PasswordHash, "Entered password:", password);
+
+    if (password !== user.PasswordHash) {
+      console.log("Incorrect password attempt for user:", email);
+      return res.status(401).json({ success: false, message: "Incorrect password" });
+    }
+
+    console.log("Login successful for user:", email);
+    res.json({ success: true, message: "Login successful", userID: user.UserID });
+
   } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error logging in:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
