@@ -239,7 +239,11 @@ CREATE TABLE UserPlanetVisibility (
 );
 GO
 
------ VIEWS -----
+
+
+--------------------------------------------------------------------------------
+-- I. Views for Simplified Data Retrieval
+--------------------------------------------------------------------------------
 
 CREATE VIEW ValidFriends AS
 SELECT 
@@ -252,7 +256,65 @@ WHERE
 GO
 
 
----- Procedures -----
+-- View: Detailed User Profile Information
+CREATE VIEW vw_UserProfileDetails AS
+SELECT
+    U.UserID,
+    U.Username,
+    U.Email,
+    U.CreatedAt AS UserSince,
+    P.ProfileID,
+    P.FirstName,
+    P.LastName,
+    P.Bio
+FROM Users U
+JOIN UserProfiles P ON U.UserID = P.UserID;
+GO
+
+-- View: Accepted Friendships (Easier to Query Friend Lists)
+CREATE VIEW vw_FriendList AS
+SELECT
+    F.UserID AS UserA_ID,
+    U_A.Username AS UserA_Username,
+    F.FriendID AS UserB_ID,
+    U_B.Username AS UserB_Username,
+    F.RequestedAt,
+    F.RespondedAt AS FriendsSince
+FROM Friends F
+JOIN Users U_A ON F.UserID = U_A.UserID
+JOIN Users U_B ON F.FriendID = U_B.UserID
+WHERE F.Status = 'Accepted';
+GO
+
+-- View: Basic Celestial Body List
+CREATE VIEW vw_CelestialBodySummary AS
+SELECT
+    BodyID,
+    Name,
+    Type,
+    Mass,
+    Diameter,
+    CreatedByUserID
+FROM CelestialBodies;
+GO
+
+-- View: User Planet Summary (Doesn't check visibility)
+CREATE VIEW vw_UserPlanetSummary AS
+SELECT
+    UP.UserPlanetID,
+    UP.Name,
+    UP.Description,
+    UP.CreatedAt,
+    UP.UserID AS OwnerUserID,
+    U.Username AS OwnerUsername
+FROM UserPlanets UP
+JOIN Users U ON UP.UserID = U.UserID;
+GO
+
+
+--------------------------------------------------------------------------------
+-- II. Stored Procedures for Actions & Parameterized Queries
+--------------------------------------------------------------------------------
 
 CREATE PROCEDURE GrantPlanetVisibility
     @UserPlanetID INT,
@@ -288,6 +350,662 @@ BEGIN
     END
 END;
 GO
+
+
+-- SP: Check if Username or Email exists
+CREATE PROCEDURE sp_CheckUserExistence
+    @Username NVARCHAR(50),
+    @Email NVARCHAR(100),
+    @UserExists BIT OUTPUT -- Output Parameter
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (SELECT 1 FROM Users WHERE Username = @Username OR Email = @Email)
+        SET @UserExists = 1;
+    ELSE
+        SET @UserExists = 0;
+END;
+GO
+
+-- SP: Register a new user (Hashing MUST be done in app code)
+CREATE PROCEDURE sp_RegisterUser
+    @Username NVARCHAR(50),
+    @Email NVARCHAR(100),
+    @PasswordHash NVARCHAR(255), -- Pass the pre-hashed password
+    @FirstName NVARCHAR(50) = '',
+    @LastName NVARCHAR(50) = '',
+    @Bio NVARCHAR(500) = '',
+    @NewUserID INT OUTPUT -- Output Parameter
+AS
+BEGIN
+    SET NOCOUNT ON;
+    -- Check existence (optional redundancy if checked before calling)
+    IF EXISTS (SELECT 1 FROM Users WHERE Username = @Username OR Email = @Email)
+    BEGIN
+        RAISERROR('Username or Email already exists.', 16, 1);
+        SET @NewUserID = -1; -- Indicate failure
+        RETURN 1;
+    END
+
+    -- REMOVE THE CHECK CONSTRAINT ON PasswordHash in table definition first!
+    BEGIN TRY
+        INSERT INTO Users (Username, Email, PasswordHash)
+        VALUES (@Username, @Email, @PasswordHash);
+
+        SET @NewUserID = SCOPE_IDENTITY();
+
+        -- Create the corresponding profile
+        INSERT INTO UserProfiles (UserID, FirstName, LastName, Bio)
+        VALUES (@NewUserID, @FirstName, @LastName, @Bio);
+
+        RETURN 0; -- Success
+    END TRY
+    BEGIN CATCH
+        -- Basic error handling
+        SET @NewUserID = -1;
+        THROW; -- Rethrow the original error
+        RETURN 1; -- Failure
+    END CATCH
+END;
+GO
+
+-- SP: Get User Info for Login Verification
+CREATE PROCEDURE sp_GetUserForLogin
+    @LoginIdentifier NVARCHAR(100) -- Can be Username or Email
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT UserID, PasswordHash FROM Users WHERE Username = @LoginIdentifier OR Email = @LoginIdentifier;
+    -- Application code compares hashes
+END;
+GO
+
+-- SP: Get User Profile Details by UserID
+CREATE PROCEDURE sp_GetUserProfile
+    @UserID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT * FROM vw_UserProfileDetails WHERE UserID = @UserID;
+END;
+GO
+
+-- SP: Update User Profile (by logged-in user)
+CREATE PROCEDURE sp_UpdateMyProfile
+    @AuthenticatedUserID INT,
+    @FirstName NVARCHAR(50),
+    @LastName NVARCHAR(50),
+    @Bio NVARCHAR(500)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE UserProfiles
+    SET FirstName = @FirstName, LastName = @LastName, Bio = @Bio
+    WHERE UserID = @AuthenticatedUserID;
+END;
+GO
+
+-- SP: (Optional) Update User Email
+CREATE PROCEDURE sp_UpdateMyEmail
+    @AuthenticatedUserID INT,
+    @NewEmail NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+     -- Check if new email already exists (excluding the current user)
+    IF EXISTS (SELECT 1 FROM Users WHERE Email = @NewEmail AND UserID <> @AuthenticatedUserID)
+    BEGIN
+        RAISERROR('Email address already in use by another account.', 16, 1);
+        RETURN 1;
+    END
+
+    UPDATE Users SET Email = @NewEmail WHERE UserID = @AuthenticatedUserID;
+    RETURN 0;
+END;
+GO
+
+-- SP: (Optional) Update User Password (Hashing done in app)
+CREATE PROCEDURE sp_UpdateMyPassword
+    @AuthenticatedUserID INT,
+    @NewPasswordHash NVARCHAR(255) -- Pass the new, pre-hashed password
+AS
+BEGIN
+    SET NOCOUNT ON;
+    -- REMOVE THE CHECK CONSTRAINT ON PasswordHash in table definition first!
+    UPDATE Users SET PasswordHash = @NewPasswordHash WHERE UserID = @AuthenticatedUserID;
+END;
+GO
+
+-- SP: Search for potential friends
+CREATE PROCEDURE sp_SearchUsers
+    @SearchQuery NVARCHAR(50),
+    @RequesterUserID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT UserID, Username
+    FROM Users
+    WHERE Username LIKE @SearchQuery + '%' AND UserID <> @RequesterUserID;
+END;
+GO
+
+-- SP: Send Friend Request
+CREATE PROCEDURE sp_SendFriendRequest
+    @RequesterUserID INT,
+    @TargetUserID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF @RequesterUserID = @TargetUserID
+    BEGIN
+        RAISERROR('Cannot send a friend request to yourself.', 16, 1);
+        RETURN 1;
+    END
+
+    -- Check if already friends or pending request exists
+    IF EXISTS (
+        SELECT 1 FROM Friends
+        WHERE (UserID = @RequesterUserID AND FriendID = @TargetUserID)
+           OR (UserID = @TargetUserID AND FriendID = @RequesterUserID)
+    )
+    BEGIN
+        RAISERROR('Friendship already exists or request is pending.', 16, 1);
+        RETURN 1;
+    END
+
+    INSERT INTO Friends (UserID, FriendID, Status)
+    VALUES (@RequesterUserID, @TargetUserID, 'Pending');
+    RETURN 0; -- Success
+END;
+GO
+
+-- SP: Check Friendship Status
+CREATE PROCEDURE sp_CheckFriendshipStatus
+    @UserA_ID INT,
+    @UserB_ID INT,
+    @Status NVARCHAR(20) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT @Status = Status
+    FROM Friends
+    WHERE (UserID = @UserA_ID AND FriendID = @UserB_ID) OR (UserID = @UserB_ID AND FriendID = @UserA_ID);
+
+    IF @Status IS NULL SET @Status = 'None'; -- No record found
+END;
+GO
+
+
+-- SP: Respond to Friend Request (Accept/Reject)
+CREATE PROCEDURE sp_RespondToFriendRequest
+    @RecipientUserID INT, -- The user accepting/rejecting
+    @RequesterUserID INT, -- The user who sent the request
+    @ResponseAction NVARCHAR(10) -- 'Accept' or 'Reject'
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @NewStatus NVARCHAR(20);
+
+    IF @ResponseAction = 'Accept'
+        SET @NewStatus = 'Accepted';
+    ELSE IF @ResponseAction = 'Reject'
+        SET @NewStatus = 'Rejected';
+    ELSE
+    BEGIN
+        RAISERROR('Invalid ResponseAction. Must be ''Accept'' or ''Reject''.', 16, 1);
+        RETURN 1;
+    END
+
+    -- Ensure the request exists and is pending, and directed to the recipient
+    IF NOT EXISTS (
+        SELECT 1 FROM Friends
+        WHERE UserID = @RequesterUserID AND FriendID = @RecipientUserID AND Status = 'Pending'
+    )
+    BEGIN
+        RAISERROR('No pending friend request found from this user to you.', 16, 1);
+        RETURN 1;
+    END
+
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        -- Update the original request
+        UPDATE Friends
+        SET Status = @NewStatus, RespondedAt = GETDATE()
+        WHERE UserID = @RequesterUserID AND FriendID = @RecipientUserID AND Status = 'Pending';
+
+        -- If accepted, create the reciprocal relationship
+        IF @NewStatus = 'Accepted'
+        BEGIN
+             -- Double-check if reciprocal already exists (shouldn't if logic is correct)
+             IF NOT EXISTS (SELECT 1 FROM Friends WHERE UserID = @RecipientUserID AND FriendID = @RequesterUserID)
+             BEGIN
+                INSERT INTO Friends (UserID, FriendID, Status, RequestedAt, RespondedAt)
+                SELECT FriendID, UserID, 'Accepted', RequestedAt, GETDATE()
+                FROM Friends
+                WHERE UserID = @RequesterUserID AND FriendID = @RecipientUserID; -- Get original timestamp
+            END
+        END
+
+        COMMIT TRANSACTION;
+        RETURN 0; -- Success
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW; -- Rethrow error
+        RETURN 1; -- Failure
+    END CATCH
+END;
+GO
+
+
+-- SP: List Pending Incoming Friend Requests
+CREATE PROCEDURE sp_GetPendingFriendRequests
+    @AuthenticatedUserID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT F.FriendshipID, U.UserID AS RequesterID, U.Username AS RequesterUsername, F.RequestedAt
+    FROM Friends F
+    JOIN Users U ON F.UserID = U.UserID -- Requester info
+    WHERE F.FriendID = @AuthenticatedUserID AND F.Status = 'Pending';
+END;
+GO
+
+-- SP: List Accepted Friends (Using the View)
+CREATE PROCEDURE sp_GetMyFriendList
+    @AuthenticatedUserID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT V.UserB_ID AS FriendID, V.UserB_Username AS FriendUsername -- , Add profile fields if needed
+    FROM vw_FriendList V
+    WHERE V.UserA_ID = @AuthenticatedUserID
+    ORDER BY FriendUsername;
+    -- Optionally JOIN UserProfiles here if needed based on FriendID
+END;
+GO
+
+-- SP: Remove Friend
+CREATE PROCEDURE sp_RemoveFriend
+    @AuthenticatedUserID INT,
+    @FriendToRemoveID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DELETE FROM Friends
+    WHERE (UserID = @AuthenticatedUserID AND FriendID = @FriendToRemoveID)
+       OR (UserID = @FriendToRemoveID AND FriendID = @AuthenticatedUserID);
+END;
+GO
+
+
+-- SP: Add New Celestial Body (Admin Action Likely)
+CREATE PROCEDURE sp_AddCelestialBody
+    @Name NVARCHAR(100),
+    @Type NVARCHAR(50),
+    @Mass DECIMAL(30,10) = NULL,
+    @Diameter DECIMAL(20,10) = NULL,
+    @Gravity DECIMAL(10,4) = NULL,
+    @OrbitalPeriod DECIMAL(15,5) = NULL,
+    @Description NVARCHAR(MAX) = '',
+    @DiscoveredBy NVARCHAR(100) = '',
+    @DiscoveryDate DATE = NULL,
+    @AdminUserID INT -- ID of user adding it
+AS
+BEGIN
+    SET NOCOUNT ON;
+     -- Unique constraint handles duplicate Name/Type pairs
+    INSERT INTO CelestialBodies
+      (Name, Type, Mass, Diameter, Gravity, OrbitalPeriod, Description, DiscoveredBy, DiscoveryDate, CreatedByUserID)
+    VALUES
+      (@Name, @Type, @Mass, @Diameter, @Gravity, @OrbitalPeriod, @Description, @DiscoveredBy, @DiscoveryDate, @AdminUserID);
+END;
+GO
+
+-- SP: Get Celestial Body Details by ID
+CREATE PROCEDURE sp_GetCelestialBodyByID
+    @BodyID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT * FROM vw_CelestialBodySummary WHERE BodyID = @BodyID; -- Or Select all columns from base table if needed
+    -- If full details needed: SELECT * FROM CelestialBodies WHERE BodyID = @BodyID;
+END;
+GO
+
+-- SP: Get Celestial Body Details by Name/Type
+CREATE PROCEDURE sp_GetCelestialBodyByNameType
+    @Name NVARCHAR(100),
+    @Type NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT * FROM CelestialBodies WHERE Name = @Name AND Type = @Type;
+END;
+GO
+
+-- SP: List/Search Celestial Bodies
+CREATE PROCEDURE sp_SearchCelestialBodies
+    @FilterType NVARCHAR(50) = NULL, -- Optional Type filter
+    @SearchName NVARCHAR(100) = NULL -- Optional Name fragment search
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT BodyID, Name, Type, Diameter, Mass
+    FROM CelestialBodies
+    WHERE (@FilterType IS NULL OR Type = @FilterType)
+      AND (@SearchName IS NULL OR Name LIKE '%' + @SearchName + '%')
+    ORDER BY Name;
+END;
+GO
+
+-- SP: Update Celestial Body (Admin Action Likely)
+CREATE PROCEDURE sp_UpdateCelestialBody
+    @BodyID INT,
+    @Name NVARCHAR(100),
+    @Type NVARCHAR(50),
+    @Mass DECIMAL(30,10) = NULL,
+    @Diameter DECIMAL(20,10) = NULL,
+    @Gravity DECIMAL(10,4) = NULL,
+    @OrbitalPeriod DECIMAL(15,5) = NULL,
+    @Description NVARCHAR(MAX),
+    @DiscoveredBy NVARCHAR(100),
+    @DiscoveryDate DATE = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE CelestialBodies
+    SET Name = @Name,
+        Type = @Type,
+        Mass = @Mass,
+        Diameter = @Diameter,
+        Gravity = @Gravity,
+        OrbitalPeriod = @OrbitalPeriod,
+        Description = @Description,
+        DiscoveredBy = @DiscoveredBy,
+        DiscoveryDate = @DiscoveryDate
+    WHERE BodyID = @BodyID;
+END;
+GO
+
+
+-- SP: Add a User Note
+CREATE PROCEDURE sp_AddUserNote
+    @AuthenticatedUserID INT,
+    @BodyID INT,
+    @NoteText NVARCHAR(MAX)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO UserNotes (UserID, BodyID, NoteText, UpdatedAt) -- Set UpdatedAt initially
+    VALUES (@AuthenticatedUserID, @BodyID, @NoteText, GETDATE());
+END;
+GO
+
+-- SP: Get Notes for a Celestial Body
+CREATE PROCEDURE sp_GetNotesForCelestialBody
+    @BodyID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT N.NoteID, N.NoteText, N.CreatedAt, N.UpdatedAt, U.Username AS AuthorUsername, N.UserID AS AuthorID
+    FROM UserNotes N
+    JOIN Users U ON N.UserID = U.UserID
+    WHERE N.BodyID = @BodyID
+    ORDER BY N.CreatedAt DESC;
+END;
+GO
+
+-- SP: Get All Notes Created by a User
+CREATE PROCEDURE sp_GetMyNotes
+    @AuthenticatedUserID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT N.NoteID, N.NoteText, N.CreatedAt, N.UpdatedAt, CB.Name AS BodyName, CB.Type AS BodyType, N.BodyID
+    FROM UserNotes N
+    JOIN CelestialBodies CB ON N.BodyID = CB.BodyID
+    WHERE N.UserID = @AuthenticatedUserID
+    ORDER BY N.UpdatedAt DESC, N.CreatedAt DESC;
+END;
+GO
+
+-- SP: Get Specific User Note Details (App MUST verify ownership via UserID before showing)
+CREATE PROCEDURE sp_GetUserNoteByID
+    @NoteID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT NoteID, UserID, BodyID, NoteText, CreatedAt, UpdatedAt
+    FROM UserNotes
+    WHERE NoteID = @NoteID;
+END;
+GO
+
+
+-- SP: Update a User Note
+CREATE PROCEDURE sp_UpdateMyNote
+    @AuthenticatedUserID INT,
+    @NoteID INT,
+    @NewNoteText NVARCHAR(MAX)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE UserNotes
+    SET NoteText = @NewNoteText, UpdatedAt = GETDATE()
+    WHERE NoteID = @NoteID AND UserID = @AuthenticatedUserID; -- Ensure ownership
+END;
+GO
+
+-- SP: Delete a User Note
+CREATE PROCEDURE sp_DeleteMyNote
+    @AuthenticatedUserID INT,
+    @NoteID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DELETE FROM UserNotes
+    WHERE NoteID = @NoteID AND UserID = @AuthenticatedUserID; -- Ensure ownership
+END;
+GO
+
+
+-- SP: Create a User Custom Planet
+CREATE PROCEDURE sp_CreateUserPlanet
+    @AuthenticatedUserID INT,
+    @Name NVARCHAR(100),
+    @Mass DECIMAL(30,10) = NULL,
+    @Diameter DECIMAL(20,10) = NULL,
+    @Gravity DECIMAL(10,4) = NULL,
+    @OrbitalPeriod DECIMAL(15,5) = NULL,
+    @Description NVARCHAR(MAX) = ''
+AS
+BEGIN
+    SET NOCOUNT ON;
+    -- Unique constraint UQ_UserPlanetName handles duplicate name check for this user
+    INSERT INTO UserPlanets
+      (UserID, Name, Mass, Diameter, Gravity, OrbitalPeriod, Description, UpdatedAt)
+    VALUES
+      (@AuthenticatedUserID, @Name, @Mass, @Diameter, @Gravity, @OrbitalPeriod, @Description, GETDATE());
+END;
+GO
+
+-- SP: Get User's Own Custom Planets
+CREATE PROCEDURE sp_GetMyUserPlanets
+    @AuthenticatedUserID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT UserPlanetID, Name, Diameter, Mass, CreatedAt, UpdatedAt, Description
+    FROM UserPlanets
+    WHERE UserID = @AuthenticatedUserID
+    ORDER BY CreatedAt DESC;
+END;
+GO
+
+-- SP: Get Specific Custom Planet Details (checks visibility)
+CREATE PROCEDURE sp_GetUserPlanetDetails
+    @ViewerUserID INT,
+    @TargetUserPlanetID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @CanView BIT;
+    SELECT @CanView = dbo.CanUserViewPlanet(@ViewerUserID, @TargetUserPlanetID);
+
+    IF @CanView = 1
+    BEGIN
+        SELECT P.UserPlanetID, P.Name, P.Mass, P.Diameter, P.Gravity, P.OrbitalPeriod, P.Description, P.CreatedAt, P.UpdatedAt, U.Username AS OwnerUsername, P.UserID as OwnerUserID
+        FROM UserPlanets P
+        JOIN Users U ON P.UserID = U.UserID
+        WHERE P.UserPlanetID = @TargetUserPlanetID;
+    END
+    ELSE
+    BEGIN
+         -- Return an empty result set or handle appropriately
+         -- SELECT NULL AS UserPlanetID WHERE 1=0; -- Example of empty set
+        RAISERROR('You do not have permission to view this planet.', 16, 1);
+        RETURN 1;
+    END
+END;
+GO
+
+
+-- SP: Update a Custom Planet
+CREATE PROCEDURE sp_UpdateMyUserPlanet
+    @AuthenticatedUserID INT,
+    @UserPlanetID INT,
+    @Name NVARCHAR(100),
+    @Mass DECIMAL(30,10) = NULL,
+    @Diameter DECIMAL(20,10) = NULL,
+    @Gravity DECIMAL(10,4) = NULL,
+    @OrbitalPeriod DECIMAL(15,5) = NULL,
+    @Description NVARCHAR(MAX) = ''
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE UserPlanets
+    SET Name = @Name,
+        Mass = @Mass,
+        Diameter = @Diameter,
+        Gravity = @Gravity,
+        OrbitalPeriod = @OrbitalPeriod,
+        Description = @Description,
+        UpdatedAt = GETDATE()
+    WHERE UserPlanetID = @UserPlanetID AND UserID = @AuthenticatedUserID; -- Ensure ownership
+END;
+GO
+
+-- SP: Delete a Custom Planet
+CREATE PROCEDURE sp_DeleteMyUserPlanet
+    @AuthenticatedUserID INT,
+    @UserPlanetID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DELETE FROM UserPlanets
+    WHERE UserPlanetID = @UserPlanetID AND UserID = @AuthenticatedUserID; -- Ensure ownership (Cascades delete Visibility)
+END;
+GO
+
+-- SP: Grant or Revoke Planet Visibility to a Friend
+-- (Modifies the original procedure for simplicity)
+ALTER PROCEDURE GrantPlanetVisibility -- Use ALTER to modify existing
+    @OwnerUserID INT, -- Add owner ID for verification
+    @UserPlanetID INT,
+    @FriendID INT,
+    @CanView BIT -- 1 to grant/update, 0 to revoke/update
+AS
+BEGIN
+    SET NOCOUNT ON;
+    -- 1. Verify Ownership
+    IF NOT EXISTS (SELECT 1 FROM UserPlanets WHERE UserPlanetID = @UserPlanetID AND UserID = @OwnerUserID)
+    BEGIN
+         RAISERROR('Permission denied: You do not own this planet.', 16, 1);
+         RETURN 1;
+    END
+
+    -- 2. Check if they are accepted friends
+    IF NOT EXISTS (
+        SELECT 1 FROM Friends F
+        WHERE F.UserID = @OwnerUserID
+        AND F.FriendID = @FriendID
+        AND F.Status = 'Accepted'
+    )
+    BEGIN
+        RAISERROR('Cannot grant/revoke visibility: No accepted friendship exists with this user.', 16, 1);
+        RETURN 1;
+    END
+
+    -- 3. Insert or update visibility record
+    MERGE UserPlanetVisibility AS target
+    USING (SELECT @UserPlanetID, @FriendID, @CanView) AS source (UserPlanetID, FriendID, CanView)
+    ON (target.UserPlanetID = source.UserPlanetID AND target.FriendID = source.FriendID)
+    WHEN MATCHED THEN
+        UPDATE SET CanView = source.CanView
+    WHEN NOT MATCHED THEN
+        INSERT (UserPlanetID, FriendID, CanView)
+        VALUES (source.UserPlanetID, source.FriendID, source.CanView);
+
+    RETURN 0; -- Success
+END;
+GO
+
+-- SP: Get Friends Who Can View My Specific Planet
+CREATE PROCEDURE sp_GetMyPlanetViewers
+    @AuthenticatedUserID INT,
+    @TargetUserPlanetID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    -- Ensure the requestor owns the planet
+    IF NOT EXISTS (SELECT 1 FROM UserPlanets WHERE UserPlanetID = @TargetUserPlanetID AND UserID = @AuthenticatedUserID)
+    BEGIN
+         RAISERROR('Permission denied: You do not own this planet.', 16, 1);
+         RETURN 1;
+    END
+
+    SELECT U.UserID AS FriendUserID, U.Username AS FriendUsername
+    FROM UserPlanetVisibility V
+    JOIN Users U ON V.FriendID = U.UserID
+    WHERE V.UserPlanetID = @TargetUserPlanetID AND V.CanView = 1;
+
+END;
+GO
+
+-- SP: Get Custom Planets Shared With Me
+CREATE PROCEDURE sp_GetPlanetsSharedWithMe
+    @AuthenticatedUserID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT P.UserPlanetID, P.Name, P.Description, Owner.Username AS OwnerUsername, Owner.UserID as OwnerUserID
+    FROM UserPlanetVisibility V
+    JOIN UserPlanets P ON V.UserPlanetID = P.UserPlanetID
+    JOIN Users Owner ON P.UserID = Owner.UserID -- Get owner info
+    JOIN Friends F ON V.FriendID = @AuthenticatedUserID AND P.UserID = F.UserID -- Ensure they are still accepted friends
+    WHERE V.FriendID = @AuthenticatedUserID AND V.CanView = 1 AND F.Status = 'Accepted'
+    ORDER BY P.Name;
+END;
+GO
+
+-- SP: Check Visibility Status for a Specific Planet/Friend Pair
+CREATE PROCEDURE sp_CheckPlanetVisibilityStatus
+    @TargetUserPlanetID INT,
+    @TargetFriendID INT,
+    @CanViewStatus BIT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT @CanViewStatus = CanView
+    FROM UserPlanetVisibility
+    WHERE UserPlanetID = @TargetUserPlanetID AND FriendID = @TargetFriendID;
+
+    IF @CanViewStatus IS NULL SET @CanViewStatus = 0; -- Default to false if no record exists
+END;
+GO
+
 
 ---- Functions -----
 
