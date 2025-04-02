@@ -1,0 +1,590 @@
+/* --- Reset & Base --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --glow-color: #00ffff; /* Cyan glow */
+    --primary-glow: rgba(0, 255, 255, 0.7);
+    --secondary-glow: rgba(170, 0, 255, 0.6); /* Purple accent */
+    --dark-bg: #050818; /* Very dark deep blue */
+    --panel-bg: rgba(15, 20, 45, 0.7); /* Semi-transparent panel */
+    --text-color: #e0e8ff;
+    --accent-color: #00ffff;
+    --purple-accent: #aa00ff;
+    --input-bg: rgba(0, 0, 20, 0.5);
+    --border-color: rgba(0, 255, 255, 0.2);
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-color);
+    background-color: var(--dark-bg);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+    perspective: 1000px; /* For potential 3D effects */
+}
+
+/* --- Animated Background --- */
+@keyframes move-stars-far {
+    from { background-position: 0 0; }
+    to   { background-position: -10000px 5000px; }
+}
+@keyframes move-stars-mid {
+    from { background-position: 0 0; }
+    to   { background-position: -7000px 3500px; }
+}
+@keyframes move-stars-near {
+    from { background-position: 0 0; }
+    to   { background-position: -5000px 2500px; }
+}
+@keyframes nebula-flow {
+    0% { background-position: 0% 50%; opacity: 0.3; }
+    50% { background-position: 100% 50%; opacity: 0.6; }
+    100% { background-position: 0% 50%; opacity: 0.3; }
+}
+@keyframes subtle-glow {
+    0%, 100% { box-shadow: 0 0 30px 5px var(--glow-color-var, var(--primary-glow)), inset 0 0 10px rgba(0,0,0,0.4); }
+    50% { box-shadow: 0 0 45px 10px var(--glow-color-var, var(--primary-glow)), inset 0 0 15px rgba(0,0,0,0.5); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(2deg); }
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+}
+@keyframes comet {
+    0% { transform: translate(calc(-100% - 200px), calc(100% + 200px)) rotate(45deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translate(calc(100% + 200px), calc(-100% - 200px)) rotate(45deg); opacity: 0; }
+}
+
+#stars1, #stars2, #stars3, #nebula {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%;
+    display: block;
+    will-change: background-position, transform; /* Performance hint */
+}
+
+/* Multiple star layers for parallax */
+#stars1 { /* Farthest */
+    background: var(--dark-bg) url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="10" cy="10" r="0.3" fill="%23aaa"/><circle cx="30" cy="70" r="0.4" fill="%23ccc"/><circle cx="80" cy="30" r="0.3" fill="%23bbb"/></svg>') repeat;
+    background-size: 250px 250px;
+    animation: move-stars-far 400s linear infinite;
+    z-index: -3;
+}
+#stars2 { /* Middle */
+    background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="0.5" fill="white"/><circle cx="90" cy="90" r="0.4" fill="%23eee"/><circle cx="15" cy="85" r="0.6" fill="white"/></svg>') repeat;
+    background-size: 300px 300px;
+    animation: move-stars-mid 250s linear infinite;
+    opacity: 0.8;
+    z-index: -2;
+}
+#stars3 { /* Nearest */
+    background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="70" cy="10" r="0.7" fill="white"/><circle cx="25" cy="35" r="0.8" fill="%23f0f0ff"/><circle cx="60" cy="75" r="0.6" fill="white"/></svg>') repeat;
+    background-size: 350px 350px;
+    animation: move-stars-near 150s linear infinite;
+    opacity: 0.9;
+    z-index: -1;
+}
+
+#nebula {
+    background: linear-gradient(45deg, rgba(80, 0, 120, 0.1) 0%, rgba(0, 50, 100, 0.15) 50%, rgba(0, 100, 100, 0.1) 100%);
+    background-size: 400% 400%;
+    animation: nebula-flow 60s ease infinite;
+    mix-blend-mode: screen; /* Experiment with blend modes */
+    opacity: 0.5; /* Controlled by animation */
+    z-index: -1;
+}
+
+/* Planets */
+.planet {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(100,100,220,0.6) 0%, rgba(50,50,150,0.8) 70%);
+    filter: blur(2px);
+    box-shadow: 0 0 20px rgba(150, 150, 255, 0.15), inset 0 0 15px rgba(0,0,0,0.3);
+    transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1); /* Smooth parallax */
+    will-change: transform;
+    z-index: 0; /* Above stars/nebula, below form */
+}
+.planet-lg { 
+    width: 180px; 
+    height: 180px; 
+    bottom: 5%; 
+    right: 8%; 
+    filter: blur(3px);
+    animation: float 20s ease-in-out infinite;
+}
+.planet-md { 
+    width: 90px; 
+    height: 90px; 
+    top: 12%; 
+    left: 10%; 
+    filter: blur(2px);
+    animation: float 15s ease-in-out infinite reverse;
+}
+.planet-sm { 
+    width: 60px; 
+    height: 60px; 
+    bottom: 25%; 
+    left: 20%; 
+    filter: blur(1px);
+    animation: float 10s ease-in-out infinite;
+}
+
+.planet-glow1 {
+    background: radial-gradient(circle, rgba(255, 100, 180, 0.5) 0%, rgba(180, 0, 80, 0.7) 70%);
+    box-shadow: 0 0 40px rgba(255, 100, 180, 0.3), inset 0 0 20px rgba(50,0,0,0.4);
+    --glow-color-var: rgba(255, 100, 180, 0.7);
+    animation: subtle-glow 8s ease-in-out infinite, float 20s ease-in-out infinite;
+}
+.planet-glow2 {
+    background: radial-gradient(circle, rgba(100, 220, 220, 0.5) 0%, rgba(0, 150, 150, 0.7) 70%);
+     box-shadow: 0 0 30px rgba(100, 220, 220, 0.3), inset 0 0 15px rgba(0,30,30,0.4);
+     --glow-color-var: rgba(100, 220, 220, 0.7);
+     animation: subtle-glow 10s ease-in-out infinite reverse, float 15s ease-in-out infinite reverse;
+}
+
+/* Comet effect */
+.comet {
+    position: absolute;
+    width: 150px;
+    height: 3px;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+    border-radius: 50%;
+    filter: blur(1px);
+    box-shadow: 0 0 10px 2px rgba(255,255,255,0.3);
+    z-index: 2;
+    animation: comet 8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    animation-delay: calc(var(--delay) * 1s);
+    transform-origin: center center;
+}
+
+/* Floating particles */
+.particle {
+    position: absolute;
+    width: var(--size);
+    height: var(--size);
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    opacity: 0.6;
+    filter: blur(1px);
+    animation: pulse 3s ease-in-out infinite;
+    animation-delay: calc(var(--delay) * 1s);
+    z-index: 1;
+}
+
+/* Stars that actually twinkle */
+.twinkling-star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background-color: white;
+    border-radius: 50%;
+    box-shadow: 0 0 var(--glow) var(--color);
+    animation: pulse var(--speed) ease-in-out infinite;
+    z-index: 0;
+}
+
+/* --- Authentication Container --- */
+.auth-container-wrapper {
+    position: relative;
+    z-index: 10;
+    padding: 5px; /* Space for the outer glow/border */
+    transform-style: preserve-3d;
+    transform: translateZ(0);
+}
+
+.auth-container {
+    width: 90%;
+    max-width: 420px;
+    background: var(--panel-bg);
+    border-radius: 16px;
+    padding: 35px 30px 40px 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5),
+                0 0 30px var(--primary-glow),
+                inset 0 0 20px rgba(0,0,0, 0.3);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px) saturate(120%);
+    position: relative; /* Needed for pseudo elements and absolute children */
+    overflow: hidden; /* Clip the glow overflow */
+    transform: translateZ(0); /* Promote to own layer */
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.auth-container:hover {
+    transform: translateY(-5px) scale(1.02);
+}
+
+.auth-container:focus {
+    box-shadow: 0 0 40px var(--primary-glow), inset 0 0 20px rgba(0,0,0, 0.4);
+    transform: translateY(-2px) scale(1.01);
+}
+
+.auth-container:focus-visible {
+    box-shadow: 0 0 40px var(--primary-glow), inset 0 0 20px rgba(0,0,0, 0.4);
+    transform: translateY(-2px) scale(1.01);
+}
+
+
+.auth-container:focus-within {
+    box-shadow: 0 0 40px var(--primary-glow), inset 0 0 20px rgba(0,0,0, 0.4);
+    transform: translateY(-2px) scale(1.01);
+}
+
+@keyframes border-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.auth-container-glow {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 16px;
+    padding: 2px; /* Thickness of the border */
+    background: conic-gradient(from 0deg, 
+        var(--purple-accent), 
+        var(--accent-color), 
+        var(--purple-accent), 
+        var(--accent-color), 
+        var(--purple-accent));
+    background-size: 200% 200%;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out; /* For Safari */
+    animation: 8s linear infinite, border-flow 5s ease infinite;
+    z-index: -1; /* Behind the main content */
+    opacity: 0.7;
+}
+
+.main-title {
+    font-family: 'Orbitron', sans-serif;
+    color: #fff;
+    text-align: center;
+    font-weight: 700;
+    font-size: 2.1em;
+    margin-bottom: 25px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px var(--primary-glow), 0 0 15px var(--primary-glow);
+}
+
+/* --- Tabs --- */
+.auth-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+.auth-tabs::after { /* Underline effect */
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    height: 2px;
+    width: 100%;
+    background: rgba(0, 255, 255, 0.1);
+}
+
+.tab-link {
+    color: rgba(224, 232, 255, 0.7); /* Slightly muted */
+    text-decoration: none;
+    padding: 10px 15px;
+    margin: 0 10px;
+    font-size: 1.0em;
+    font-weight: 600;
+    border-bottom: 3px solid transparent;
+    transition: color 0.3s ease, border-color 0.3s ease, text-shadow 0.3s ease;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+}
+
+.tab-link:hover {
+    color: #ffffff;
+     text-shadow: 0 0 5px var(--primary-glow);
+}
+
+.tab-link.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+    text-shadow: 0 0 8px var(--primary-glow);
+}
+
+/* --- Form Styling --- */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px; /* Spacing between inputs */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.auth-form.active {
+    opacity: 1;
+    transform: translateY(0);
+    position: relative;
+}
+
+.input-group {
+    position: relative;
+    transition: max-height 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.4s ease-out, margin-bottom 0.5s ease-out;
+    overflow: hidden;
+}
+.input-group:not(.hidden) {
+    max-height: 100px;
+    opacity: 1;
+    margin-bottom: 0;
+}
+.input-group.hidden {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: -10px; /* Negative margin to collapse space */
+    pointer-events: none;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: rgba(0, 255, 255, 0.5);
+    pointer-events: none;
+    transition: color 0.3s ease;
+}
+
+.input-group input {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 13px 18px 13px 45px; /* Left padding for icon */
+    color: #fff;
+    font-size: 0.95em;
+    font-family: 'Poppins', sans-serif;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    caret-color: var(--accent-color); /* Cursor color */
+}
+
+.input-group input::placeholder {
+    color: rgba(224, 232, 255, 0.5);
+    transition: opacity 0.3s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3), inset 0 0 5px rgba(0, 255, 255, 0.1);
+    background-color: rgba(0, 0, 30, 0.7);
+}
+.input-group input:focus::placeholder {
+    opacity: 0.7;
+}
+.input-group input:focus + .input-icon { /* Icon focus style if needed */
+     color: var(--accent-color);
+}
+
+/* Submit Button */
+.submit-btn {
+    font-family: 'Orbitron', sans-serif;
+    background: linear-gradient(45deg, var(--purple-accent), var(--accent-color));
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 15px auto 0; /* Top margin + center horizontally with auto left/right */
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(170, 0, 255, 0.2), 0 2px 5px rgba(0, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    display: block; /* Needed for margin auto to work */
+    width: fit-content; /* Make button width match its content */
+    min-width: 200px; /* Optional: set a minimum width */
+    text-align: center; /* Center the text inside the button */
+}
+
+.submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: all 0.5s ease;
+    z-index: -1;
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(170, 0, 255, 0.3), 0 4px 10px rgba(0, 255, 255, 0.3);
+    background: linear-gradient(45deg, #c300ff, #00ffff); /* Slightly brighter */
+}
+
+.submit-btn:hover::before {
+    left: 100%;
+}
+
+.submit-btn:active:not(:disabled) {
+     transform: translateY(-1px) scale(0.99);
+     box-shadow: 0 3px 10px rgba(170, 0, 255, 0.2), 0 1px 3px rgba(0, 255, 255, 0.2);
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Loading state */
+.submit-btn .btn-text {
+    transition: opacity 0.3s ease;
+}
+.submit-btn .btn-loader {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none; /* Make sure it doesn't interfere */
+}
+.submit-btn.loading .btn-text {
+    opacity: 0;
+}
+.submit-btn.loading .btn-loader {
+    opacity: 1;
+}
+/* Simple dots loader */
+.btn-loader::after {
+    content: '';
+    display: inline-block;
+    width: 20px; /* Adjust size */
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: 1s linear infinite;
+}
+
+/* --- Message Area Styling --- */
+.message-area {
+    padding: 12px 15px;
+    margin-bottom: 5px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    text-align: center;
+    display: none;
+    border: 1px solid transparent;
+    font-weight: 500;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    background-color: rgba(0,0,0,0.2);
+}
+
+.message-area.success {
+    border-color: rgba(0, 255, 127, 0.5);
+    color: #90ee90;
+    box-shadow: 0 0 10px rgba(0, 255, 127, 0.2);
+    display: block;
+    animation: pulse 2s ease-in-out;
+}
+
+.message-area.error {
+    border-color: rgba(255, 69, 0, 0.5);
+    color: #ff7f50;
+    box-shadow: 0 0 10px rgba(255, 69, 0, 0.2);
+    display: block;
+    animation: pulse 2s ease-in-out;
+}
+
+/* Security badge */
+.security-badge {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(45deg, var(--purple-accent), var(--accent-color));
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 0.75em;
+    font-weight: 600;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.security-badge svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+/* Holographic effect */
+.holographic {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(125deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0) 60%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 10;
+}
+
+.auth-container:hover .holographic {
+    opacity: 1;
+}
+
+/* --- Responsiveness --- */
+@media (max-width: 600px) {
+    .auth-container {
+        padding: 30px 20px 35px 20px;
+        max-width: 95%;
+    }
+    .main-title {
+        font-size: 1.8em;
+    }
+    .tab-link {
+        padding: 8px 10px;
+        margin: 0 5px;
+        font-size: 0.95em;
+    }
+    .input-group input { font-size: 0.9em; }
+    .submit-btn { font-size: 1em; }
+}
+
+/* Form container to manage height consistently */
+.form-container {
+    position: relative;
+    min-height: 340px; /* Adjust based on your tallest form */
+}
