@@ -22,14 +22,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const planets = document.querySelectorAll('.planet');
 
     // !! IMPORTANT !! - Update these URLs
-    const SIGNUP_API_URL = '/api/auth/register'; // Example endpoint
-    const LOGIN_API_URL = '/api/auth/authenticate'; // Example endpoint
+    const SIGNUP_API_URL = 'http://localhost:3001/api/users'; 
+    const LOGIN_API_URL = 'http://localhost:3001/api/users/login';
 
     let currentMode = 'signup'; // 'signup' or 'login'
 
     // --- Parallax Effect ---
     const MAX_OFFSET = 20; // Max pixels the background moves
 
+    // Google OAuth
+    function handleGoogleSignIn() {
+        window.location.href = "http://localhost:3001/api/auth/google";
+      }
+    
+    document.getElementById("google-signin-btn").addEventListener("click", () => {
+    window.location.href = "http://localhost:3001/api/auth/google";
+    });
+    
     function handleMouseMove(e) {
         const percX = (e.clientX / window.innerWidth - 0.5) * 2; // -1 to 1
         const percY = (e.clientY / window.innerHeight - 0.5) * 2; // -1 to 1

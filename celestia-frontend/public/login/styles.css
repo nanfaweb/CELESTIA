@@ -381,7 +381,7 @@ body {
     border-radius: 8px;
     padding: 13px 18px 13px 45px; /* Left padding for icon */
     color: #fff;
-    font-size: 0.95em;
+    font-size: 0.9em;
     font-family: 'Poppins', sans-serif;
     transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
     caret-color: var(--accent-color); /* Cursor color */
@@ -425,7 +425,7 @@ body {
     overflow: hidden;
     z-index: 1;
     display: block; /* Needed for margin auto to work */
-    width: fit-content; /* Make button width match its content */
+    width: 100%; /* Make button width match its content */
     min-width: 200px; /* Optional: set a minimum width */
     text-align: center; /* Center the text inside the button */
 }
@@ -588,3 +588,30 @@ body {
     position: relative;
     min-height: 340px; /* Adjust based on your tallest form */
 }
+
+.google-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 10px;
+    background-color: #fff;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+  }
+  
+.google-button:hover {
+background-color: #eee;
+}
+
+.google-icon {
+width: 20px;
+height: 20px;
+}  
