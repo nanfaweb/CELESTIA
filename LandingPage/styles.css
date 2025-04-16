@@ -1,0 +1,449 @@
+/* Base Styles */
+:root {
+    --primary-color: #a030f0; /* Adjusted Purple */
+    --secondary-color: #00e0ff; /* Adjusted Cyan */
+    --accent-color: #ff30a0; /* Adjusted Pink */
+    --text-color: #e8e8e8; /* Slightly off-white */
+    --background: #000000;
+    --glow-color: rgba(160, 48, 240, 0.7); /* Adjusted Purple Glow */
+    --border-radius: 10px; /* Slightly larger radius */
+    --transition-fast: all 0.2s ease-out;
+    --transition-medium: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --transition-slow: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --font-primary: "Orbitron", sans-serif;
+    --font-secondary: "Rajdhani", sans-serif;
+
+    /* Black Hole specific variables for easy tuning */
+    --bh-core-shadow-color: rgba(200, 180, 180, 0.5);
+    --bh-disc-color-start: #fff;
+    --bh-disc-color-end: #ffaa00;
+    --bh-disc-shadow-color: rgba(255, 220, 180, 0.6);
+    --bh-outer-glow-color: rgba(255,200,150,0.5);
+    --bh-curve-text-color: rgba(232, 232, 232, 0.7); /* Match text color */
+}
+
+* {
+  margin: 0; padding: 0; box-sizing: border-box;
+}
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-secondary);
+  background-color: var(--background);
+  color: var(--text-color);
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  cursor: none; /* Use custom cursor */
+}
+
+.container {
+  width: 100%; height: 100vh;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  position: relative; z-index: 10;
+  padding-bottom: 5vh;
+  pointer-events: none;
+}
+
+.container > .logo,
+.container > .instruction-text,
+.options-interface,
+.notification-container,
+#blackhole-loader {
+    pointer-events: auto;
+}
+
+a { text-decoration: none; color: inherit; cursor: none; }
+button { cursor: none; }
+
+/* Custom Cursor (Keep from Celestia) */
+.cursor {
+  position: fixed; width: 25px; height: 25px;
+  border-radius: 50%; border: 2px solid var(--primary-color);
+  pointer-events: none; transform: translate(-50%, -50%);
+  transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  z-index: 9999; mix-blend-mode: difference; opacity: 1;
+}
+.cursor::after {
+  content: ""; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); width: 5px; height: 5px;
+  background-color: var(--primary-color); border-radius: 50%;
+  transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease;
+}
+.cursor.active {
+  width: 45px; height: 45px;
+  background-color: rgba(160, 48, 240, 0.15);
+  border-color: var(--secondary-color);
+  mix-blend-mode: normal;
+}
+.cursor.active::after {
+  width: 7px; height: 7px; background-color: var(--secondary-color);
+}
+.cursor.clicking {
+   width: 35px; height: 35px;
+   background-color: rgba(0, 224, 255, 0.3);
+   border-color: var(--secondary-color);
+}
+.cursor.clicking::after {
+   width: 10px; height: 10px; background-color: #fff;
+}
+
+/* Logo (Keep from Celestia) */
+.logo {
+  position: absolute; top: 5vh;
+  font-family: var(--font-primary);
+  font-size: clamp(2.5rem, 7vw, 4rem);
+  font-weight: 700;
+  letter-spacing: clamp(10px, 3vw, 18px);
+  color: var(--text-color);
+  text-shadow: 0 0 12px var(--glow-color), 0 0 25px var(--glow-color), 0 0 40px var(--glow-color), 0 0 60px rgba(160, 48, 240, 0.6);
+  opacity: 0.85;
+  animation: pulse-logo 5s infinite alternate ease-in-out;
+  user-select: none; z-index: 11;
+}
+@keyframes pulse-logo {
+  0% { opacity: 0.7; text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color); }
+  100% { opacity: 1; text-shadow: 0 0 15px var(--glow-color), 0 0 30px var(--glow-color), 0 0 45px var(--glow-color), 0 0 60px rgba(160, 48, 240, 0.5); }
+}
+
+
+/* --- Enhanced Space Background (Keep from Celestia) --- */
+.space-background {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  overflow: hidden; z-index: 0; background-color: #000;
+}
+.stars, .twinkling, .nebula, .shooting-stars {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+}
+.stars { background: #000 url('https://www.transparenttextures.com/patterns/stardust.png'); z-index: 1; }
+.twinkling { background: transparent url("https://i.imgur.com/XYMF4ca.png") repeat top center; animation: move-twink-back 120s linear infinite; z-index: 2; opacity: 0.9; }
+.nebula { background: url("https://i.imgur.com/sCgbWbQ.png") no-repeat center center; background-size: 180% 180%; opacity: 0.4; z-index: 3; animation: nebula-drift 200s linear infinite alternate; mix-blend-mode: screen; }
+@keyframes move-twink-back { from { background-position: 0 0; } to { background-position: -10000px 5000px; } }
+@keyframes nebula-drift { 0% { transform: scale(1.3) rotate(-4deg); opacity: 0.35; } 50% { opacity: 0.5; } 100% { transform: scale(1.5) rotate(5deg); opacity: 0.4; } }
+
+/* --- CSS Shooting Stars (Keep from Celestia) --- */
+.shooting-stars { z-index: 4; pointer-events: none; }
+.shooting-star { position: absolute; left: 50%; top: 50%; height: 2px; background: linear-gradient(-45deg, rgba(160, 48, 240, 0.8), rgba(0, 0, 0, 0)); border-radius: 999px; filter: drop-shadow(0 0 6px rgba(160, 48, 240, 0.6)); animation: tail 3000ms ease-in-out infinite, shooting 3000ms ease-in-out infinite; }
+.shooting-star::before, .shooting-star::after { content: ''; position: absolute; top: calc(50% - 1px); right: 0; height: 2px; background: linear-gradient(-45deg, rgba(0, 0, 0, 0), rgba(160, 48, 240, 0.8), rgba(0, 0, 0, 0)); transform: translateX(50%) rotateZ(45deg); border-radius: 100%; animation: shining 3000ms ease-in-out infinite; }
+.shooting-star::after { transform: translateX(50%) rotateZ(-45deg); }
+.shooting-stars .shooting-star:nth-child(1) { top: 30%; left: 80%; animation-delay: 0s; }
+.shooting-stars .shooting-star:nth-child(2) { top: 50%; left: 20%; animation-delay: 1000ms; }
+.shooting-stars .shooting-star:nth-child(3) { top: 70%; left: 90%; animation-delay: 2300ms; }
+.shooting-stars .shooting-star:nth-child(4) { top: 10%; left: 40%; animation-delay: 3500ms; }
+.shooting-stars .shooting-star:nth-child(5) { top: 80%; left: 50%; animation-delay: 4800ms; }
+@keyframes tail { 0% { width: 0; } 30% { width: 100px; } 100% { width: 0; } }
+@keyframes shining { 0% { width: 0; } 50% { width: 30px; } 100% { width: 0; } }
+@keyframes shooting { 0% { transform: translateX(0); } 100% { transform: translateX(calc(100vw + 150px)); } } */
+
+/* Floating Planets (Keep from Celestia) */
+.floating-objects { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+.planet { position: absolute; border-radius: 50%; top: 50%; left: 50%; transform-origin: center; z-index: var(--z-index, 0); }
+.small-planet { width: var(--planet-size); height: var(--planet-size); background: var(--planet-color); box-shadow: inset -5px -3px 15px rgba(0,0,0,0.5), 0 0 15px rgba(255, 255, 255, 0.2); animation: orbit var(--orbit-duration) linear infinite; animation-delay: var(--orbit-delay); }
+@keyframes orbit { 0% { transform: translate(-50%, -50%) rotate(0deg) translateX(var(--orbit-size)) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg) translateX(var(--orbit-size)) rotate(-360deg); } }
+
+
+/* --- NEW Blackhole Loader --- */
+.loader, #blackhole-loader {
+    display: flex;
+    width: clamp(180px, 28vw, 250px); /* Responsive size */
+    height: clamp(180px, 28vw, 250px);
+    justify-content: center;
+    align-items: center;
+    position: absolute; /* Keep relative for positioning within flex container */
+    flex-direction: column;
+    perspective: 00px; /* For 3D effects */
+    margin-bottom: 3vh; /* Space below black hole */
+    cursor: none; /* Use custom cursor */
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Add hover transition */
+    z-index: 11; /* Above background, below modal */
+    pointer-events: auto; /* Allow interaction */
+    }
+
+#blackhole-loader:hover {
+   transform: scale(1.15); /* Keep hover effect */
+}
+
+.curve {
+    width: 200%; /* Larger curve */
+    height: 200%;
+    position: relative;
+    animation: rotate 12s linear infinite; /* Keep rotation */
+    fill: transparent;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+    pointer-events: none;
+}
+
+.curve text.loader-svg-text { /* Adjusted selector */
+    letter-spacing: clamp(10px, 1.8vw, 15px); /* Adjusted */
+    text-transform: uppercase;
+    font: clamp(0.8em, 1.6vw, 1em) var(--font-primary); /* Adjusted font */
+    fill: var(--bh-curve-text-color); /* Use variable */
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 150, 0.6)) drop-shadow(0 0 15px rgba(255, 255, 255, 0.4)); /* Adjusted */
+    opacity: 0.85;
+    animation: textGlow 3s ease-in-out infinite alternate; /* Keep glow */
+    /* REMOVED textDistortion animation */
+}
+
+.blackhole {
+    z-index: -1;
+    display: flex;
+    position: absolute;
+    width: 80%; /* Relative size */
+    height: 80%;
+    align-items: center;
+    justify-content: center;
+    animation: wobble 15s ease-in-out infinite; /* Keep wobble */
+    /* REMOVED blackholeCollapse animation */
+}
+
+.blackhole-circle {
+    z-index: 0; display: flex; width: 100%; height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at center, rgb(0, 0, 15) 25%, rgb(70, 70, 255) 35%, white 100%);
+    box-shadow: 0px 0px 3rem var(--bh-core-shadow-color), 0px 0px 5rem rgba(100, 100, 255, 0.6), inset 0px 0px 2rem rgba(255, 255, 255, 0.8);
+    align-items: center; justify-content: center;
+    animation: rotate 25s linear infinite reverse; /* Keep rotation */
+    /* REMOVED circleCollapse animation */
+}
+
+.blackhole-circle::after {
+    z-index: -1; /* Behind main */
+    position: absolute; content: ""; display: flex;
+    width: 100%; height: 100%; border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.8);
+    background: radial-gradient(circle at center, rgb(0, 0, 20) 35%, rgba(100, 100, 255, 0.8) 60%, white 100%);
+    box-shadow: 0px 0px 5rem var(--bh-core-shadow-color), 0px 0px 3rem rgba(100, 100, 255, 0.7), inset 0 0 1rem rgba(0,0,0,0.5); /* Added inner shadow back */
+    align-items: center; justify-content: center;
+    filter: blur(4px);
+    animation: pulseAnimation 3s ease-in-out infinite alternate-reverse; /* Keep pulse */
+    /* REMOVED afterCollapse animation */
+}
+
+.blackhole-circle::before {
+    z-index: 1; content: ""; display: flex;
+    width: 40%; height: 40%; /* Relative size */
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 3px 3px 15px var(--bh-core-shadow-color), inset 0 0 1.5rem rgba(255, 255, 255, 0.9), 0 0 20px rgba(100, 100, 255, 0.8);
+    border-radius: 50%;
+    /* Removed top: 5rem; positioning handled by flex */
+    filter: blur(0.5px);
+    animation: rotate 5s linear infinite, orbitAround 8s ease-in-out infinite alternate; /* Keep animations */
+    /* REMOVED beforeCollapse animation */
+}
+
+.blackhole-disc {
+    position: absolute; z-index: 0; display: flex;
+    width: 70%; height: 120%; /* Relative size */
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, var(--bh-disc-color-start) 80%, rgba(100, 100, 255, 0.8) 90%, white 100%); /* Adjusted gradient */
+    filter: blur(1.2rem) brightness(130%);
+    border: 1rem solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0px 0px 4rem var(--bh-disc-shadow-color), 0px 0px 2rem rgba(100, 100, 255, 0.6);
+    transform: rotate3d(1, 1, 1, 220deg);
+    animation: pulseAnimation2 3s ease-in-out infinite alternate-reverse, discRotate 15s linear infinite; /* Keep animations */
+    /* REMOVED discCollapse animation */
+    justify-content: center; align-items: center;
+}
+
+.blackhole-disc::before {
+    content: ""; position: absolute; z-index: 0; /* Should be -1? */ display: flex;
+    width: 90%; height: 100%; /* Relative size */
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, var(--bh-disc-color-start) 80%, rgba(100, 100, 255, 0.8) 90%, white 100%); /* Adjusted gradient */
+    filter: blur(3rem);
+    border: 1rem solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0px 0px 6rem var(--bh-disc-shadow-color), 0px 0px 3rem rgba(100, 100, 255, 0.7);
+    animation: pulseAnimation 3s ease-in-out infinite alternate-reverse; /* Keep pulse */
+    /* REMOVED discBeforeCollapse animation */
+}
+
+/* Particle effects */
+.particles {
+    position: absolute; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: -2; /* Behind blackhole elements */
+}
+.particle {
+    position: absolute; width: 3px; height: 3px;
+    background: white; border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(100, 100, 255, 0.6);
+    opacity: 0;
+    animation: particleFlow 4s ease-in infinite;
+}
+/* Regular particles positioning */
+.particles .particle:nth-child(1) { top: 20%; left: 50%; animation-delay: 0s; }
+.particles .particle:nth-child(2) { top: 30%; left: 40%; animation-delay: 0.4s; }
+.particles .particle:nth-child(3) { top: 40%; left: 60%; animation-delay: 0.8s; }
+.particles .particle:nth-child(4) { top: 60%; left: 40%; animation-delay: 1.2s; }
+.particles .particle:nth-child(5) { top: 70%; left: 50%; animation-delay: 1.6s; }
+.particles .particle:nth-child(6) { top: 50%; left: 30%; animation-delay: 2s; }
+.particles .particle:nth-child(7) { top: 50%; left: 70%; animation-delay: 2.4s; }
+.particles .particle:nth-child(8) { top: 30%; left: 50%; animation-delay: 2.8s; }
+.particles .particle:nth-child(9) { top: 80%; left: 60%; animation-delay: 3.2s; }
+.particles .particle:nth-child(10) { top: 20%; left: 30%; animation-delay: 3.6s; }
+
+/* --- REMOVED Collapse Particles styles --- */
+.collapse-particles, .collapse-particle { display: none; }
+
+/* Outer ring */
+.outer-ring {
+    position: absolute; width: 140%; height: 140%;
+    border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 30px rgba(100, 100, 255, 0.3);
+    animation: ringPulse 6s linear infinite alternate;
+    z-index: -2; /* Behind blackhole */
+}
+
+/* --- REMOVED Singularity Styles --- */
+.singularity { display: none; }
+
+/* --- REMOVED Spacetime Distortion Styles --- */
+.spacetime-distortion { display: none; }
+
+/* --- REMOVED Event Horizon Light Waves Styles --- */
+.event-horizon-waves, .light-wave { display: none; }
+
+
+/* --- Base Animations (Keep Perpetual Ones) --- */
+@keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes discRotate { 0% { transform: rotate3d(1, 1, 1, 220deg); } 50% { transform: rotate3d(1, 1, 1, 250deg); } 100% { transform: rotate3d(1, 1, 1, 220deg); } }
+@keyframes pulseAnimation { 0% { box-shadow: 0px 0px 3rem var(--bh-core-shadow-color), 0px 0px 2rem rgba(100, 100, 255, 0.5); transform: scale(1); opacity: 0.9; } 100% { box-shadow: 0px 0px 5rem var(--bh-core-shadow-color), 0px 0px 4rem rgba(100, 100, 255, 0.8); transform: scale(1.12); opacity: 1; } }
+@keyframes pulseAnimation2 { 0% { box-shadow: 0px 0px 3rem var(--bh-core-shadow-color), 0px 0px 2rem rgba(100, 100, 255, 0.5); transform: rotate3d(1, 1, 1, 220deg) scale(1); opacity: 0.8; } 100% { box-shadow: 0px 0px 6rem var(--bh-core-shadow-color), 0px 0px 4rem rgba(100, 100, 255, 0.8); transform: rotate3d(1, 1, 1, 220deg) scale(0.92); opacity: 1; } }
+@keyframes wobble { 0%, 100% { transform: translateX(0) translateY(0); } 25% { transform: translateX(-5px) translateY(5px); } 50% { transform: translateX(5px) translateY(-5px); } 75% { transform: translateX(5px) translateY(5px); } }
+@keyframes orbitAround { 0% { top: 5rem; left: 0; } 50% { top: 4rem; left: 1rem; } 100% { top: 6rem; left: -1rem; } }
+@keyframes textGlow { 0% { filter: drop-shadow(0 2px 12px rgba(0, 0, 255, 0.5)) drop-shadow(0 0 10px rgba(255, 255, 255, 0.3)); opacity: 0.7; } 100% { filter: drop-shadow(0 2px 12px rgba(0, 0, 255, 1)) drop-shadow(0 0 25px rgba(255, 255, 255, 0.7)); opacity: 0.95; } }
+@keyframes particleFlow { 0% { opacity: 0; transform: translate(0, 0) scale(1); } 20% { opacity: 0.8; transform: translate(-20px, -20px) scale(1.2); } 100% { opacity: 0; transform: translate(-50px, -50px) scale(0.2); } }
+@keyframes ringPulse { 0% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.05); opacity: 0.7; } 100% { transform: scale(1); opacity: 0.3; } }
+
+/* --- REMOVED Collapse Animations --- */
+
+
+/* --- Username Display --- */
+.username-display {
+  position: absolute;
+  bottom: calc(100% + 20px); /* Increased distance */
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background-color: rgba(15, 10, 25, 0.85);
+  padding: 10px 25px; border-radius: 5px;
+  font-size: clamp(14px, 2vw, 16px);
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0.4s ease;
+  white-space: nowrap; pointer-events: none;
+  border: 1px solid var(--primary-color);
+  box-shadow: 0 0 15px rgba(160, 48, 240, 0.4);
+  font-family: var(--font-primary); letter-spacing: 2px;
+  backdrop-filter: blur(8px); z-index: 1;
+}
+body.show-username .username-display {
+  opacity: 1; visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+
+/* Instruction Text */
+.instruction-text {
+  position: relative; margin-top: 50vh; bottom: auto;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  z-index: 11; user-select: none; text-shadow: 0 0 8px rgba(0,0,0,0.5);
+}
+.instruction-line {
+    font-family: var(--font-primary); font-size: clamp(1rem, 2.5vw, 1.2rem);
+    letter-spacing: 4px; color: rgba(255, 255, 255, 0.85);
+    animation: blink-instruction 2.5s infinite ease-in-out;
+}
+.instruction-hint { /* Hide hint */
+   display: none;
+}
+@keyframes blink-instruction { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+
+
+/* --- Options Interface (Keep from previous version) --- */
+.options-interface {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(5, 0, 10, 0.85);
+  backdrop-filter: blur(12px) saturate(150%);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 100; opacity: 0; visibility: hidden;
+  clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+  transition: clip-path 0.7s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.5s ease, visibility 0.7s;
+  pointer-events: auto;
+}
+.options-interface.active {
+  opacity: 1; visibility: visible;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+}
+.interface-content {
+  width: 90%; max-width: 950px; text-align: center;
+  transform: translateY(50px) scale(0.95); opacity: 0;
+  transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) 0.2s, opacity 0.6s ease 0.2s;
+  padding: 40px clamp(20px, 5vw, 40px); background: rgba(15, 5, 30, 0.7);
+  border: 1px solid rgba(138, 43, 226, 0.4); border-radius: var(--border-radius);
+  box-shadow: 0 0 60px rgba(138, 43, 226, 0.25);
+}
+.options-interface.active .interface-content { transform: translateY(0) scale(1); opacity: 1; }
+.interface-content h2 {
+  font-family: var(--font-primary); font-size: clamp(2rem, 5vw, 2.8rem);
+  margin-bottom: 50px; color: var(--secondary-color);
+  letter-spacing: clamp(6px, 2vw, 10px);
+  text-shadow: 0 0 10px var(--secondary-color), 0 0 20px var(--secondary-color), 0 0 30px rgba(0, 224, 255, 0.5);
+  position: relative; display: inline-block; padding-bottom: 20px;
+}
+.interface-content h2::after {
+  content: ""; position: absolute; bottom: 0; left: 10%; width: 80%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--secondary-color), transparent);
+  transform: scaleX(0); transition: transform 0.8s ease 0.5s; transform-origin: center;
+}
+.options-interface.active .interface-content h2::after { transform: scaleX(1); }
+.options { display: flex; justify-content: center; gap: clamp(30px, 5vw, 50px); margin: 50px 0; flex-wrap: wrap; }
+.option {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  width: clamp(280px, 35vw, 340px); padding: 35px; border-radius: var(--border-radius);
+  background: linear-gradient(145deg, rgba(30, 10, 50, 0.75), rgba(50, 20, 80, 0.75));
+  border: 1px solid rgba(138, 43, 226, 0.5);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+  overflow: hidden; cursor: none; backdrop-filter: blur(5px);
+}
+.option:hover { transform: translateY(-15px) scale(1.05); border-color: var(--secondary-color); box-shadow: 0 15px 40px rgba(138, 43, 226, 0.4), 0 0 20px var(--secondary-color); }
+.option-glow { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(0, 224, 255, 0.25) 0%, transparent 60%); opacity: 0; transform: scale(0.5); transition: opacity 0.5s ease, transform 0.5s ease; z-index: 0; pointer-events: none; }
+.option:hover .option-glow { opacity: 1; transform: scale(1); }
+.option-icon { width: clamp(80px, 15vw, 100px); height: clamp(80px, 15vw, 100px); margin-bottom: 25px; background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 0 10px var(--glow-color)); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s ease; z-index: 1; }
+.option:hover .option-icon { transform: scale(1.15) rotate(8deg); filter: drop-shadow(0 0 15px var(--primary-color)) drop-shadow(0 0 25px var(--secondary-color)); }
+.solar-system-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a030f0' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='1.5' fill='%23f0c040'%3E%3C/circle%3E%3Ccircle cx='12' cy='12' r='4' stroke='%2300e0ff' stroke-dasharray='2 2'%3E%3C/circle%3E%3Ccircle cx='12' cy='12' r='7' stroke='%23a030f0'%3E%3C/circle%3E%3Ccircle cx='12' cy='12' r='10' stroke='%2300e0ff' stroke-dasharray='4 4'%3E%3C/circle%3E%3C/svg%3E"); }
+.exoplanet-icon {background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='%2300e0ff' stroke-width='1.5'%3E%3C!-- Targeting lines --%3E%3Cpath d='M32 4 V12 M32 60 V52 M4 32 H12 M60 32 H52' stroke-opacity='0.6'%3E%3C/path%3E%3C!-- Outer Ring --%3E%3Ccircle cx='32' cy='32' r='24' stroke-opacity='0.8'%3E%3C/circle%3E%3C!-- Inner Dashed Ring --%3E%3Ccircle cx='32' cy='32' r='18' stroke-dasharray='4 4' stroke-opacity='0.5'%3E%3C/circle%3E%3C!-- Distant Planet Target --%3E%3Ccircle cx='48' cy='16' r='3' fill='%23a030f0' stroke='%23a030f0'%3E%3C/circle%3E%3C!-- Scan line to target --%3E%3Cpath d='M32 32 L46 18' stroke='%23a030f0' stroke-width='1' stroke-dasharray='2 3' stroke-opacity='0.7'%3E%3C/path%3E%3C/svg%3E");}.option-text { text-align: center; z-index: 1; }
+.option-title { display: block; font-family: var(--font-primary); font-size: clamp(1.3rem, 3vw, 1.6rem); margin-bottom: 12px; color: var(--text-color); letter-spacing: 3px; text-shadow: 0 0 8px rgba(255, 255, 255, 0.6); }
+.option-desc { display: block; color: rgba(255, 255, 255, 0.75); font-size: clamp(0.85rem, 2vw, 0.95rem); line-height: 1.5; }
+.option-particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: var(--border-radius); overflow: hidden; pointer-events: none; z-index: 0; }
+.particle { position: absolute; bottom: -10px; width: 3px; height: 3px; background-color: var(--secondary-color); border-radius: 50%; opacity: 0; animation: float-up 3s ease-out infinite; filter: blur(1px); }
+@keyframes float-up { 0% { transform: translateY(0) translateX(var(--x-start, 0)); opacity: 0; } 20% { opacity: 0.8; } 80% { opacity: 0.8; } 100% { transform: translateY(-120%) translateX(var(--x-end, 0)); opacity: 0; } }
+.close-btn { background-color: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); padding: 12px 40px; border-radius: 30px; cursor: none; font-family: var(--font-primary); font-size: clamp(0.9rem, 2vw, 1rem); letter-spacing: 4px; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); margin-top: 40px; position: relative; overflow: hidden; text-shadow: 0 0 8px var(--primary-color); }
+.btn-glow { position: absolute; top: -50%; left: -150%; width: 50%; height: 200%; background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent); transform: skewX(-25deg); transition: left 0.6s ease; pointer-events: none; }
+.close-btn span { position: relative; z-index: 1; transition: color 0.4s ease;}
+.close-btn:hover { background-color: rgba(138, 43, 226, 0.2); color: var(--text-color); box-shadow: 0 0 25px var(--primary-color), 0 0 10px var(--secondary-color); transform: translateY(-5px); border-color: var(--secondary-color); }
+.close-btn:hover .btn-glow { left: 150%; }
+
+
+/* Tooltip (Keep from previous version) */
+[data-tooltip] { position: relative; }
+[data-tooltip]::before { content: attr(data-tooltip); position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%) translateY(10px); padding: 8px 15px; background-color: rgba(15, 5, 30, 0.9); color: var(--text-color); border-radius: 4px; font-size: 13px; white-space: nowrap; opacity: 0; visibility: hidden; transition: all 0.3s ease; pointer-events: none; font-family: var(--font-secondary); letter-spacing: 1px; z-index: 110; border: 1px solid rgba(138, 43, 226, 0.5); backdrop-filter: blur(3px); }
+[data-tooltip]:hover::before { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+/* Notification System (Keep from previous version) */
+.notification-container { position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: flex; flex-direction: column; gap: 15px; pointer-events: none; }
+.notification { background-color: rgba(20, 10, 40, 0.85); border-left: 5px solid var(--primary-color); padding: 18px 25px; border-radius: var(--border-radius); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); transform: translateX(calc(100% + 30px)); opacity: 0; transition: all 0.6s cubic-bezier(0.68, -0.6, 0.32, 1.6); backdrop-filter: blur(10px); max-width: 320px; pointer-events: auto; }
+.notification.show { transform: translateX(0); opacity: 1; }
+.notification-title { font-family: var(--font-primary); font-size: 1.1rem; margin-bottom: 8px; color: var(--secondary-color); letter-spacing: 1px; }
+.notification-message { font-size: 0.95rem; color: rgba(255, 255, 255, 0.8); line-height: 1.5; }
+
+
+/* Responsive Design (Keep from previous version) */
+@media (max-width: 992px) { .logo { font-size: 2.5rem; letter-spacing: 8px; } #blackhole-loader { width: clamp(160px, 25vw, 200px); height: clamp(160px, 25vw, 200px); } .curve text.loader-svg-text { font-size: 0.8em; letter-spacing: 8px; } .interface-content h2 { font-size: 2rem; } .options { gap: 35px; } }
+@media (max-width: 768px) { .logo { top: 30px; font-size: 2rem; letter-spacing: 6px; } #blackhole-loader { width: clamp(140px, 30vw, 180px); height: clamp(140px, 30vw, 180px); } .curve text.loader-svg-text { font-size: 0.75em; letter-spacing: 7px; } .options { flex-direction: column; align-items: center; gap: 30px; } .option { width: 90%; max-width: 320px; padding: 30px; } .interface-content h2 { font-size: 1.8rem; letter-spacing: 6px; } .notification-container { bottom: 20px; right: 20px; gap: 10px; } .notification { padding: 15px 20px; } .instruction-text { bottom: 5vh; margin-top: 2vh;} }
+@media (max-width: 576px) { .logo { top: 20px; font-size: 1.8rem; letter-spacing: 4px; } #blackhole-loader { width: clamp(120px, 35vw, 160px); height: clamp(120px, 35vw, 160px); } .curve text.loader-svg-text { font-size: 0.7em; letter-spacing: 6px; } .interface-content h2 { font-size: 1.6rem; letter-spacing: 4px; margin-bottom: 40px;} .option-icon { width: 80px; height: 80px; margin-bottom: 20px;} .option-title { font-size: 1.3rem; } .option-desc { font-size: 0.9rem; } .close-btn { padding: 10px 30px; font-size: 0.9rem; } .username-display { padding: 8px 20px; font-size: 14px; } .instruction-text { bottom: 4vh; margin-top: 1.5vh;} }
+
+/* Accessibility Focus Styles */
+button:focus-visible, a:focus-visible { outline: 3px solid var(--secondary-color); outline-offset: 3px; box-shadow: 0 0 0 5px rgba(0, 224, 255, 0.3); }
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } /* Add specific animation disabling if needed */ }

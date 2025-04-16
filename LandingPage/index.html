@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celestia - Enter the Singularity</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background elements -->
+    <div class="space-background">
+        <div class="stars"></div>
+        <div class="twinkling"></div>
+        <div class="nebula"></div>
+        <div class="shooting-stars">
+             <!-- Add empty divs if using CSS nth-child for shooting stars -->
+             <div class="shooting-star"></div>
+             <div class="shooting-star"></div>
+             <div class="shooting-star"></div>
+             <div class="shooting-star"></div>
+             <div class="shooting-star"></div>
+        </div>
+    </div>
+
+    <!-- Floating planets (Optional) -->
+    <div class="floating-objects">
+        <div class="planet small-planet p1" style="--orbit-duration: 140s; --orbit-size: 38vw; --orbit-delay: 0s; --planet-size: 40px; --planet-color: radial-gradient(circle at 30% 30%, #ff8b8b, #a34040); --z-index: 5;"></div>
+        <div class="planet small-planet p2" style="--orbit-duration: 200s; --orbit-size: 48vw; --orbit-delay: -50s; --planet-size: 28px; --planet-color: radial-gradient(circle at 30% 30%, #8ceeff, #3c9ba0); --z-index: 6;"></div>
+        <div class="planet small-planet p3" style="--orbit-duration: 170s; --orbit-size: 42vw; --orbit-delay: -80s; --planet-size: 35px; --planet-color: radial-gradient(circle at 30% 30%, #ffd65b, #fb7627); --z-index: 7;"></div>
+    </div>
+
+    <!-- Main content -->
+    <div class="container">
+        <div class="logo">CELESTIA</div>
+
+        <div class="loader" id="blackhole-loader">
+            <div class="blackhole">
+                <div class="blackhole-circle"></div>
+                <div class="blackhole-disc"></div>
+            </div>
+
+            <div class="curve">
+                <svg viewBox="0 0 500 500">
+                    <path id="loading" d="M73.2,148.6c4-6.1,65.5-96.8,178.6-95.6c111.3,1.2,170.8,90.3,175.1,97"></path>
+                </svg>
+            </div>
+
+            <div class="particles">
+                <!-- Add particle divs if using CSS nth-child -->
+                <div class="particle"></div> <div class="particle"></div>
+                <div class="particle"></div> <div class="particle"></div>
+                <div class="particle"></div> <div class="particle"></div>
+                <div class="particle"></div> <div class="particle"></div>
+                <div class="particle"></div> <div class="particle"></div>
+            </div>
+            <div class="outer-ring"></div>
+            <div class="singularity"></div>
+            <div class="spacetime-distortion"></div>
+
+             <!-- Username display moved inside -->
+             <div class="username-display" id="username-display">Loading User...</div>
+        </div>
+
+
+        <!-- Instruction text -->
+        <div class="instruction-text">
+            <span class="instruction-line">APPROACH ANOMALY</span>
+        </div>
+
+        <!-- Options interface (hidden by default) -->
+        <div class="options-interface" id="options-interface">
+             <!-- Keep existing options interface content -->
+             <div class="interface-content">
+                <h2>CHOOSE EXPLORATION VECTOR</h2>
+                <div class="options">
+                     <a href="solar_system.html" class="option" id="solar-system-option" data-tooltip="Traverse our local stellar system">
+                        <div class="option-glow"></div>
+                        <div class="option-icon solar-system-icon"></div>
+                        <div class="option-text">
+                            <span class="option-title">SOL SYSTEM</span>
+                            <span class="option-desc">Visit familiar worlds</span>
+                        </div>
+                        <div class="option-particles"></div>
+                    </a>
+                    <a href="exoplanets.html" class="option" id="exoplanet-option" data-tooltip="Chart courses to distant stars">
+                        <div class="option-glow"></div>
+                        <div class="option-icon exoplanet-icon"></div>
+                        <div class="option-text">
+                            <span class="option-title">EXO-WORLDS</span>
+                            <span class="option-desc">Seek out the unknown</span>
+                        </div>
+                        <div class="option-particles"></div>
+                    </a>
+                </div>
+                <button class="close-btn" id="close-btn">
+                    <span>DISENGAGE</span>
+                    <div class="btn-glow"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification system -->
+    <div class="notification-container" id="notification-container"></div>
+
+    <!-- Custom Cursor Element -->
+    <div class="cursor" id="custom-cursor"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
