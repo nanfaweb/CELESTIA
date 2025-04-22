@@ -1,8 +1,33 @@
 // Wrap everything in an IIFE
 (() => {
+    // Check if email is passed via query parameters (Google login)
+    const urlParams = new URLSearchParams(window.location.search);
+    const googleEmail = urlParams.get("email");
+
+    if (googleEmail) {
+        // Update local storage with the Google user's email
+        localStorage.setItem("userEmail", googleEmail);
+        console.log(`Google user logged in: ${googleEmail}`);
+
+        // Optionally, clear the query parameter from the URL
+        const newUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+
+    const email = localStorage.getItem('userEmail');
+    if (!email) {
+        alert("You must login first!");
+        window.location.href = "/login/index.html"; // Redirect back to login
+    }
+
+    // Clear local storage on browser close
+    window.addEventListener("beforeunload", () => {
+        localStorage.removeItem("userEmail");
+    }); 
+
     // --- Configuration ---
     const DEFAULT_USERNAME = "Guest Explorer";
-    const USERNAME_API_ENDPOINT = "/api/get-username"; // <-- CHANGE THIS
+    const USERNAME_API_ENDPOINT = "http://localhost:3001/api/get-username";
 
     // --- State Variables ---
     // REMOVED Three.js variables
@@ -47,13 +72,12 @@
         console.log("Celestia: Initialization sequence complete.");
     }
 
-
     // --- Username Fetching ---
     async function fetchUsernameAndUpdateUI() {
         console.log("Celestia: Fetching username...");
         let finalUsername = DEFAULT_USERNAME;
         try {
-            const response = await fetch(USERNAME_API_ENDPOINT);
+            const response = await fetch(`${USERNAME_API_ENDPOINT}?email=${email}`);
             if (response.ok) {
                 const data = await response.json();
                 // IMPORTANT: Adjust 'data.username' based on your actual API response structure (Afnan do this shit)

@@ -15,6 +15,7 @@ const celestialBodiesRouter = require("./routes/celestialbodies");
 const userNotesRouter = require("./routes/usernotes");
 const userPlanetsRouter = require("./routes/userplanets");
 const userPlanetVisibilityRouter = require("./routes/userplanetvisibility");
+const userInfoRoutes = require('./routes/userinfo');
 
 // Import new auth router
 const authRouter = require("./routes/auth");
@@ -45,6 +46,7 @@ app.use("/api/celestial-bodies", celestialBodiesRouter);
 app.use("/api/user-notes", userNotesRouter);
 app.use("/api/user-planets", userPlanetsRouter);
 app.use("/api/user-planet-visibility", userPlanetVisibilityRouter);
+app.use('/api', userInfoRoutes);
 
 // Mount Auth routes separately under /api/auth
 app.use("/api/auth", authRouter);

@@ -33,10 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Google OAuth
     function handleGoogleSignIn() {
         window.location.href = "http://localhost:3001/api/auth/google";
-      }
+    }
     
     document.getElementById("google-signin-btn").addEventListener("click", () => {
-    window.location.href = "http://localhost:3001/api/auth/google";
+        window.location.href = "http://localhost:3001/api/auth/google";
     });
     
     function handleMouseMove(e) {
@@ -198,19 +198,23 @@ document.addEventListener('DOMContentLoaded', () => {
                  //    console.log("Token received and stored.");
                  // }
 
-                if (result.redirectUrl) {
-                     setTimeout(() => {
-                        window.location.href = result.redirectUrl;
-                     }, 1500);
-                } else {
-                     console.warn(`${actionText} successful, but no redirect URL provided.`);
-                     // Optional: Switch to login after signup success if no redirect
-                     if(currentMode === 'signup') {
-                        setTimeout(() => {
-                             document.querySelector('.tab-link[data-tab="login"]').click();
-                         }, 1500);
-                     }
-                }
+                 localStorage.setItem("userEmail", email);
+
+                 setTimeout(() => {
+                    window.location.href = "/LandingPage/index.html";
+                  }, 1000);
+                
+                //  if (currentMode === 'login') {
+                //     localStorage.setItem("userEmail", email); // Store user email
+                //     setTimeout(() => {
+                //       window.location.href = "/LandingPage/index.html"; // NEW destination
+                //     }, 1500);
+                //   } else {
+                //     console.warn(`${actionText} successful, but no redirect URL provided.`);
+                //     setTimeout(() => {
+                //       document.querySelector('.tab-link[data-tab="login"]').click();
+                //     }, 1500);
+                //   }
             } else {
                 // Display specific error from backend if available
                 displayMessage(result.message || `${actionText} failed. Please verify your credentials.`, true);

@@ -7,6 +7,7 @@ require("dotenv").config();
 
 const router = express.Router();
 
+// Configure Google OAuth strategy
 passport.use(
   new GoogleStrategy(
     {
@@ -19,11 +20,13 @@ passport.use(
         const email = profile.emails[0].value;
         const username = profile.displayName || profile.name.givenName;
 
+        // Check if the user already exists in the database
         const existingUserResult = await (await pool).request()
           .input("email", email)
           .query("SELECT * FROM Users WHERE Email = @email");
 
         if (existingUserResult.recordset.length === 0) {
+          // Register the user if they don't exist
           const dummyPassword = "GOOGLE_AUTH_" + crypto.randomUUID();
 
           await (await pool).request()
@@ -45,11 +48,14 @@ passport.use(
   )
 );
 
+// Serialize and deserialize user for session management
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
+// Route to initiate Google OAuth
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
+// Google OAuth callback route
 router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
@@ -61,14 +67,14 @@ router.get(
     try {
       const poolConn = await pool;
 
-      // Check if user exists
+      // Check if the user exists in the database
       const checkResult = await poolConn
         .request()
         .input("email", email)
         .query("SELECT * FROM Users WHERE Email = @email");
 
       if (checkResult.recordset.length === 0) {
-        // If not, insert the Google user with dummy password
+        // Register the user if they don't exist
         const dummyPassword = "GOOGLE_AUTH_" + crypto.randomUUID();
 
         await poolConn
@@ -84,8 +90,8 @@ router.get(
         console.log("Google user registered.");
       }
 
-      // Redirect to dashboard
-      res.redirect("http://localhost:3000/dashboard");
+      // Redirect to the frontend with the user's email
+      res.redirect(`http://localhost:3000/LandingPage/index.html?email=${encodeURIComponent(email)}`);
     } catch (err) {
       console.error("Error during Google sign-in:", err);
       res.redirect("/login");
@@ -93,6 +99,7 @@ router.get(
   }
 );
 
+// Logout route
 router.get("/logout", (req, res) => {
   req.logout(() => {
     res.redirect("/");
