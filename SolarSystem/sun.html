@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="celestial-body-name" content="Sun">
+    <title>Sun</title>
+    <link rel="preload" as="image" href="https://www.solarsystemscope.com/textures/download/2k_sun.jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <style>
+        /* --- Base & Layout --- */
+        html {
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+        body {
+            background-color: #000000; /* Black background */
+            display: flex;
+            justify-content: center; /* Center planet area horizontally */
+            align-items: center; /* Center planet area vertically */
+            min-height: 100vh;
+            padding: 0; /* Remove body padding */
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Clean font */
+            color: #ffffff; /* Default white text */
+            overflow: hidden; /* Hide potential overflow and scrollbars */
+        }
+
+         /* --- Star Background Container --- */
+         #star-background {
+            position: fixed; /* Cover the whole viewport */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Place behind all other content */
+            overflow: hidden; /* Hide stars going outside viewport */
+            pointer-events: none; /* Don't interfere with clicks */
+        }
+
+        /* --- Individual Star Styles --- */
+        .star {
+            position: absolute;
+            background-color: #ffffff;
+            border-radius: 50%;
+            /* Apply the twinkling animation */
+            animation-name: twinkle;
+            animation-iteration-count: infinite;
+            /* Base animation properties - will be varied */
+            animation-timing-function: ease-in-out;
+            opacity: 0; /* Start hidden until animation kicks in */
+        }
+
+        .star-small {
+            width: 1px;
+            height: 1px;
+        }
+
+        .star-medium {
+            width: 2px;
+            height: 2px;
+        }
+
+        .star-large { /* Optional larger stars */
+            width: 3px;
+            height: 3px;
+        }
+
+        /* --- Twinkling Animation --- */
+        @keyframes twinkle {
+            0% {
+                opacity: 0; /* Start invisible */
+                transform: scale(0.5);
+            }
+            25% {
+                opacity: 1.0; /* Brightest point */
+                transform: scale(1.0);
+            }
+            50% {
+                 opacity: 0.5; /* Fade slightly */
+                 transform: scale(0.8);
+            }
+            75% {
+                 opacity: 1.0; /* Brighten again */
+                 transform: scale(1.0);
+            }
+            100% {
+                opacity: 0; /* Fade out completely */
+                transform: scale(0.5);
+            }
+        }
+
+
+        /* --- Info Overlay (Top-Left) --- */
+        .info-overlay {
+            position: fixed; /* Fixed position */
+            top: 30px;
+            left: 30px;
+            z-index: 10; /* Above planet */
+            background: none; /* No background */
+            border: none; /* No border */
+            padding: 0; /* No padding for the container itself */
+            text-align: left;
+            font-size: 0.85em; /* Slightly smaller font */
+            line-height: 1.7; /* Increase line spacing */
+            pointer-events: none; /* Allow clicks through the info area if needed */
+        }
+        .info-overlay p {
+            margin: 5px 0; /* Minimal vertical spacing */
+            pointer-events: auto; /* Re-enable pointer events for text selection */
+        }
+        .info-overlay .label {
+            font-weight: 400; /* Normal weight */
+            color: #aaaaaa; /* Subtle grey label */
+            min-width: 120px; /* Align values */
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .info-overlay .value {
+            color: #ffffff; /* White value */
+            font-weight: 300; /* Lighter value text */
+        }
+         /* Description doesn't need special styling if label/value works */
+        .info-overlay .loading {
+            color: #777777;
+            font-style: italic;
+        }
+
+        /* --- Planet Visual Area (Centered) --- */
+        .planet-visual-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+             z-index: 1; /* Ensure planet is above star background */
+        }
+
+        .planet-container {
+            margin-bottom: 25px; /* Space below planet */
+            position: relative;
+        }
+
+        .section-banner {
+            height: 600px;
+            width: 600px;
+            position: relative;
+            background-size: cover;
+            background-position: left;
+            border-radius: 50%;
+            /* Original complex inset shadow */
+            box-shadow: 0px 0 20px RGBA(255, 255, 255, 0.1), /* Soft outer hint */
+                      -5px 0px 8px rgba(195, 244, 255, 0.6) inset,  /* Highlight */
+                      15px 2px 25px rgba(0, 0, 0, 0.9) inset,      /* Main shadow */
+                      -24px -2px 34px rgba(195, 244, 255, 0.4) inset, /* Broader highlight */
+                      250px 0px 44px rgba(0, 0, 0, 0.6) inset,   /* Far side shadow */
+                      150px 0px 38px rgba(0, 0, 0, 0.75) inset;   /* Mid far side shadow */
+            overflow: hidden;
+            margin: 0 auto;
+             /* Fallback color and image */
+            background-color: #1a1a1a; /* Dark grey fallback */
+            /* Planet specific styles below */
+            background-image: url('https://www.solarsystemscope.com/textures/download/2k_sun.jpg');
+            animation: planetRotate 30s linear 0s infinite;
+        }
+
+
+        @keyframes planetRotate {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 400px 50%; }
+        }
+
+        .planet-name-title {
+            color: #ffffff;
+            margin-top: 15px;
+            font-size: 2.5em; /* Larger title */
+            font-weight: 200; /* Very light font weight */
+            letter-spacing: 3px; /* Increase spacing */
+            text-transform: uppercase; /* Optional: Uppercase for style */
+        }
+
+        /* --- Notes Feature --- */
+        #notes-toggle-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.1); /* Transparent white */
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+            border-radius: 50%;
+            font-size: 1.4em;
+            cursor: pointer;
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+        }
+        #notes-toggle-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        .notes-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 320px;
+            height: 100%;
+            background-color: rgba(10, 10, 10, 0.85); /* Dark transparent */
+            border-left: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px); /* Stronger blur */
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1001;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            padding: 25px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            color: #ffffff; /* White text */
+        }
+        .notes-panel.open {
+            transform: translateX(0);
+        }
+        .notes-panel h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding-bottom: 12px;
+            font-weight: 400; /* Lighter heading */
+             letter-spacing: 1px;
+        }
+        .notes-panel textarea {
+            flex-grow: 1;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.3); /* Darker transparent input */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 12px;
+            box-sizing: border-box;
+            color: #ffffff;
+            font-size: 1em;
+            line-height: 1.5;
+            resize: none;
+            margin-bottom: 15px;
+        }
+         .notes-panel textarea:focus {
+             outline: none;
+             border-color: rgba(255, 255, 255, 0.5); /* Brighter focus border */
+             box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+         }
+        .notes-panel .button-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .notes-panel button {
+            padding: 10px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            background-color: transparent; /* Transparent background */
+            color: #ffffff;
+            transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
+        }
+         .notes-panel button:active {
+            transform: scale(0.98);
+        }
+        .notes-panel .save-note-btn:hover {
+             background-color: rgba(255, 255, 255, 0.15);
+             border-color: rgba(255, 255, 255, 0.5);
+        }
+        .notes-panel .close-note-btn {
+             color: #aaaaaa; /* Grey out close button text */
+             border-color: rgba(255, 255, 255, 0.15);
+        }
+        .notes-panel .close-note-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .notes-status {
+            margin-top: 12px;
+            font-size: 0.85em;
+            color: #aaaaaa; /* Status color */
+            min-height: 1.3em;
+            text-align: center;
+            font-weight: 300;
+        }
+
+      /* --- Back Button --- */
+        #back-button {
+            position: fixed;
+            top: 10px; /* Moved even higher up */
+            right: 20px; /* Position at right side */
+            z-index: 1000; /* Below notes panel but above most content */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 32px; /* Thinner width */
+            height: 32px; /* Thinner height */
+            background-color: rgba(255, 255, 255, 0.06); /* More subtle background */
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.12); /* Even thinner border */
+            border-radius: 4px; /* More squared corners for futuristic look */
+            font-size: 1em; /* Smaller arrow size */
+            line-height: 1; /* Ensure arrow is centered */
+            text-decoration: none;
+            cursor: pointer;
+            backdrop-filter: blur(8px); /* Enhanced blur effect */
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1); /* More sophisticated easing */
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.03); /* Very subtle glow */
+        }
+
+        #back-button:hover {
+            background-color: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px); /* Subtle lift effect */
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.08); /* Enhanced glow on hover */
+        }
+
+        #back-button:active {
+            transform: translateY(0) scale(0.98); /* Press effect */
+        }
+    </style>
+</head>
+<body>
+    <a href="SolarSystem.html" id="back-button" title="Back to Solar System View">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span class="sr-only">Back</span>
+    </a>
+    <div id="star-background"></div>
+    <div class="info-overlay">
+        <p><span class="label">Type:</span> <span class="value" id="info-type"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Mass (kg):</span> <span class="value" id="info-mass"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Diameter (km):</span> <span class="value" id="info-diameter"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Gravity (m/s²):</span> <span class="value" id="info-gravity"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Orbital Period (days):</span> <span class="value" id="info-orbital"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Discovered By:</span> <span class="value" id="info-discoveredBy"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Discovery Date:</span> <span class="value" id="info-discoveryDate"><span class="loading">Loading...</span></span></p>
+    </div>
+    <div class="planet-visual-area">
+        <div class="planet-container">
+            <!-- Add the specific class -->
+            <div class="section-banner sun-banner"></div>
+        </div>
+        <div id="planet-name-display" class="planet-name-title">Loading...</div>
+    </div>
+    <button id="notes-toggle-btn" title="Open Notes"><i class="fa-regular fa-note-sticky"></i></button>
+    <div class="notes-panel" id="notes-panel">
+        <h3>My Notes for <span id="notes-body-name">Sun</span></h3>
+        <div id="info-description-notes" style="font-size: 0.9em; color: #ccc; margin-bottom: 15px; max-height: 150px; overflow-y: auto; line-height: 1.5; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;"><span class="loading">Loading description...</span></div>
+        <textarea id="note-text" placeholder="Add your personal notes here..."></textarea>
+        <div class="button-container"><button class="save-note-btn" id="save-note-btn">Save Note</button><button class="close-note-btn" id="close-note-btn">Close</button></div>
+        <div class="notes-status" id="notes-status"></div>
+    </div>
+    <script>
+        // (The JS code is identical for all pages as it adapts using the meta tag)
+         document.addEventListener('DOMContentLoaded', () => {
+            // --- Configuration ---
+            // Read the celestial body's name from the meta tag in the HTML <head>
+            const metaTagName = document.querySelector('meta[name="celestial-body-name"]');
+            const currentBodyName = metaTagName ? metaTagName.content : 'Mars'; // Fallback to current page name
+
+            // !!! BACKEND INTEGRATION POINT !!!
+            // These should be obtained from your authentication system or session after user login
+            const currentUserId = 1; // Placeholder - Replace with actual logged-in user ID
+            let currentBodyId = null; // This will be populated after fetching body info (using the name)
+
+            // --- DOM Element References ---
+            // Get references to various HTML elements to interact with them
+            const infoElements = {
+                type: document.getElementById('info-type'),
+                mass: document.getElementById('info-mass'),
+                diameter: document.getElementById('info-diameter'),
+                gravity: document.getElementById('info-gravity'),
+                orbital: document.getElementById('info-orbital'),
+                discoveredBy: document.getElementById('info-discoveredBy'),
+                discoveryDate: document.getElementById('info-discoveryDate'),
+                name: document.getElementById('planet-name-display'),
+                description: document.getElementById('info-description-notes') // Description now inside notes panel
+            };
+            const notesToggleButton = document.getElementById('notes-toggle-btn');
+            const notesPanel = document.getElementById('notes-panel');
+            const closeNoteButton = document.getElementById('close-note-btn');
+            const saveNoteButton = document.getElementById('save-note-btn');
+            const noteTextarea = document.getElementById('note-text');
+            const notesBodyNameSpan = document.getElementById('notes-body-name'); // Span inside notes title
+            const notesStatus = document.getElementById('notes-status'); // Message area in notes panel
+            const starBackground = document.getElementById('star-background'); // Container for stars
+
+             // --- Star Generation ---
+             // Dynamically create star elements for the background
+             const numStars = 250; // Adjust for desired density vs performance
+
+             if (starBackground) { // Ensure the container element exists
+                 for (let i = 0; i < numStars; i++) {
+                     const star = document.createElement('div'); // Create a new div for each star
+                     const sizeRoll = Math.random(); // Random number for size variation
+                     let sizeClass = 'star-small'; // Default size
+                     // Assign size classes based on probability
+                     if (sizeRoll > 0.9) { sizeClass = 'star-large'; }
+                     else if (sizeRoll > 0.6) { sizeClass = 'star-medium'; }
+
+                     star.className = `star ${sizeClass}`; // Apply base class and size class
+                     // Set random position using percentages
+                     star.style.top = `${Math.random() * 100}%`;
+                     star.style.left = `${Math.random() * 100}%`;
+                     // Randomize animation duration and delay for more natural twinkling
+                     const duration = Math.random() * 5 + 3; // 3s to 8s
+                     const delay = Math.random() * 5;      // 0s to 5s
+                     star.style.animationDuration = `${duration}s`;
+                     star.style.animationDelay = `${delay}s`;
+                     starBackground.appendChild(star); // Add the star div to the background container
+                 }
+             }
+             // --- End Star Generation ---
+
+
+            // --- Data Formatting Helpers ---
+            // Formats large numbers (like mass) into scientific notation, others with commas
+            function formatNumber(numStr) {
+                if (!numStr) return 'N/A';
+                const num = parseFloat(numStr);
+                if (isNaN(num)) return 'N/A';
+                if (Math.abs(num) > 1e21) return num.toExponential(4); // Use e-notation for very large nums
+                return num.toLocaleString('en-US', { maximumFractionDigits: 2 }); // Add commas, limit decimals
+            }
+            // Formats date strings (handles null, potentially YYYY-MM-DD)
+            function formatDate(dateStr) {
+                if (!dateStr) return 'N/A';
+                try {
+                    const date = new Date(dateStr); // Try parsing directly
+                    if (isNaN(date.getTime())) { // If standard parsing fails...
+                         // Try parsing specifically as YYYY-MM-DD (assumes UTC)
+                         const parts = dateStr.split('-');
+                         if (parts.length === 3) {
+                             const checkDate = new Date(Date.UTC(parts[0], parseInt(parts[1], 10) - 1, parts[2]));
+                             if (!isNaN(checkDate.getTime())) {
+                                 // Format using locale conventions if successful
+                                 return checkDate.toLocaleDateString('en-GB', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' });
+                             }
+                         }
+                         return 'N/A'; // Give up if format is unexpected
+                    }
+                    // For dates parsed correctly (might include time/timezone)
+                    // Adjusting for potential local timezone issues if the time is exactly midnight UTC
+                    const offsetDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+                    return offsetDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+                } catch (e) {
+                    console.error("Date formatting error:", e);
+                    return 'N/A';
+                }
+            }
+
+
+             // --- API Simulation/Placeholders ---
+             // Provides sample data for frontend development without a real backend
+             // ** BACKEND DEVELOPER: Replace calls to this with actual API fetches **
+            function getPlaceholderData(bodyName) {
+                const dataStore = {
+                    "Mercury": { bodyId: 1, name: "Mercury", type: "Planet", mass: "3.3011e23", diameter: "4879.4", gravity: "3.7", orbitalPeriod: "87.97", discoveredBy: "Known to ancients", discoveryDate: null, description: "The smallest planet in our Solar System and nearest to the Sun, Mercury has extreme temperature variations and a heavily cratered surface." },
+                    "Venus": { bodyId: 2, name: "Venus", type: "Planet", mass: "4.8675e24", diameter: "12103.6", gravity: "8.87", orbitalPeriod: "224.7", discoveredBy: "Known to ancients", discoveryDate: null, description: "Often called Earth's 'sister planet' due to similar size and mass, Venus has a thick, toxic atmosphere trapping heat in a runaway greenhouse effect." },
+                    "Earth": { bodyId: 3, name: "Earth", type: "Planet", mass: "5.9724e24", diameter: "12742", gravity: "9.81", orbitalPeriod: "365.25", discoveredBy: "N/A", discoveryDate: null, description: "Our home, the only known astronomical object to harbor and support life, with vast oceans and a dynamic atmosphere." },
+                    "Mars": { bodyId: 4, name: "Mars", type: "Planet", mass: "6.4171e23", diameter: "6779", gravity: "3.71", orbitalPeriod: "686.98", discoveredBy: "Known to ancients", discoveryDate: null, description: "The 'Red Planet', characterized by its iron oxide surface, polar ice caps, the largest volcano (Olympus Mons), and vast canyon systems (Valles Marineris)." },
+                    "Jupiter": { bodyId: 5, name: "Jupiter", type: "Planet", mass: "1.8982e27", diameter: "139820", gravity: "24.79", orbitalPeriod: "4332.59", discoveredBy: "Known to ancients", discoveryDate: null, description: "The largest planet, a gas giant composed mainly of hydrogen and helium, featuring the Great Red Spot, a persistent anticyclonic storm." },
+                    "Saturn": { bodyId: 6, name: "Saturn", type: "Planet", mass: "5.6834e26", diameter: "116460", gravity: "10.44", orbitalPeriod: "10759.22", discoveredBy: "Known to ancients", discoveryDate: null, description: "The second-largest planet, renowned for its stunning and complex ring system composed mostly of ice particles, with numerous moons." },
+                    "Uranus": { bodyId: 7, name: "Uranus", type: "Planet", mass: "8.6810e25", diameter: "50724", gravity: "8.69", orbitalPeriod: "30688.5", discoveredBy: "William Herschel", discoveryDate: "1781-03-13", description: "An ice giant with a unique axial tilt of about 98 degrees, giving it extreme seasons. It has a faint ring system and numerous moons." },
+                    "Neptune": { bodyId: 8, name: "Neptune", type: "Planet", mass: "1.0241e26", diameter: "49244", gravity: "11.15", orbitalPeriod: "60182", discoveredBy: "Urbain Le Verrier, John Couch Adams, Johann Galle", discoveryDate: "1846-09-23", description: "The most distant planet from the Sun, an ice giant known for its deep blue color and the fastest winds in the Solar System." },
+                    "Sun": { bodyId: 9, name: "Sun", type: "Star", mass: "1.9885e30", diameter: "1392700", gravity: "274.0", orbitalPeriod: null, discoveredBy: "N/A", discoveryDate: null, description: "The G-type main-sequence star (G2V) at the center of our Solar System. It is by far the most important source of energy for life on Earth." }
+                 };
+                return dataStore[bodyName];
+            }
+
+
+            // --- Core Functions ---
+
+            /**
+             * Fetches celestial body information based on currentBodyName.
+             * Simulates an API call using getPlaceholderData.
+             * Updates the UI elements in the info overlay and notes panel.
+             */
+             async function fetchBodyInfo() {
+                 console.log(`Fetching info for: ${currentBodyName}`);
+                 setLoadingState(true); // Display "Loading..." in UI elements
+
+                 // !!! BACKEND INTEGRATION POINT !!!
+                 // Replace this try-catch block with an actual fetch call to your API.
+                 try {
+                     // --- SIMULATION START ---
+                     await new Promise(resolve => setTimeout(resolve, 600)); // Simulate network delay
+                     const data = getPlaceholderData(currentBodyName);
+                     if (!data) throw new Error("Body not found in placeholder data.");
+                     // --- SIMULATION END ---
+
+                     currentBodyId = data.bodyId; // <<< Important: Store the actual BodyID from backend
+                     notesBodyNameSpan.textContent = data.name; // Update notes panel title
+
+                     // Populate UI elements with fetched & formatted data
+                     infoElements.name.textContent = data.name;
+                     infoElements.type.textContent = data.type || 'N/A';
+                     infoElements.mass.textContent = formatNumber(data.mass);
+                     infoElements.diameter.textContent = formatNumber(data.diameter);
+                     infoElements.gravity.textContent = data.gravity ? parseFloat(data.gravity).toFixed(2) : 'N/A';
+                     infoElements.orbital.textContent = formatNumber(data.orbitalPeriod);
+                     infoElements.discoveredBy.textContent = data.discoveredBy || 'N/A';
+                     infoElements.discoveryDate.textContent = formatDate(data.discoveryDate);
+                     // Populate description inside the notes panel
+                     if (infoElements.description) {
+                          infoElements.description.textContent = data.description || 'No description available.';
+                          // Clear loading state specifically for description
+                          const descLoading = infoElements.description.querySelector('.loading');
+                          if (descLoading) descLoading.remove();
+                     }
+                 } catch (error) {
+                     console.error("Error fetching body info:", error);
+                     // Display error states in the UI
+                     if (infoElements.name) infoElements.name.textContent = `${currentBodyName} (Error)`;
+                      const overlayElements = document.querySelectorAll('.info-overlay .value');
+                      overlayElements.forEach(el => { el.textContent = 'Error'; });
+                      if (infoElements.description) infoElements.description.textContent = 'Failed to load description.';
+                 } finally {
+                     setLoadingState(false); // Hide "Loading..." indicators in the overlay
+                 }
+             }
+
+             /**
+              * Fetches the current user's note for the current celestial body.
+              * Simulates using localStorage.
+              */
+             async function fetchNote() {
+                 // Need user and body IDs to fetch the correct note
+                 if (!currentBodyId || !currentUserId) {
+                    console.warn("Cannot fetch note: Missing BodyID or UserID");
+                    return;
+                 }
+                 notesStatus.textContent = 'Loading note...';
+                 notesStatus.style.color = '#aaaaaa';
+
+                 // !!! BACKEND INTEGRATION POINT !!!
+                 // Replace this try-catch block with an actual fetch call to your notes API.
+                 try {
+                     // --- SIMULATION START ---
+                      await new Promise(resolve => setTimeout(resolve, 300)); // Simulate delay
+                     const storedNote = localStorage.getItem(`note_${currentUserId}_${currentBodyId}`);
+                     noteTextarea.value = storedNote || '';
+                     notesStatus.textContent = storedNote ? 'Note loaded.' : 'No previous note.';
+                     // --- SIMULATION END ---
+                 } catch (error) {
+                     console.error("Error fetching note:", error);
+                     notesStatus.textContent = 'Error loading note.';
+                     notesStatus.style.color = '#ff6b6b'; // Indicate error visually
+                 }
+              }
+
+             /**
+              * Saves or updates the user's note for the current celestial body.
+              * Simulates using localStorage.
+              */
+             async function saveNote() {
+                  // Need user and body IDs to save the note correctly
+                 if (!currentBodyId || !currentUserId) {
+                      notesStatus.textContent = 'Error: Cannot save note.';
+                      notesStatus.style.color = '#ff6b6b';
+                      return;
+                 }
+                 const noteText = noteTextarea.value; // Get text from the textarea
+                 notesStatus.textContent = 'Saving...';
+                 notesStatus.style.color = '#aaaaaa';
+                 saveNoteButton.disabled = true; // Prevent multiple rapid clicks
+
+                 // !!! BACKEND INTEGRATION POINT !!!
+                 // Replace this try-catch block with an actual fetch call (POST or PUT).
+                 try {
+                     // --- SIMULATION START ---
+                     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+                     localStorage.setItem(`note_${currentUserId}_${currentBodyId}`, noteText); // Store in browser storage
+                     // --- SIMULATION END ---
+
+                     notesStatus.textContent = 'Note saved!';
+                     notesStatus.style.color = '#51cf66'; // Green for success
+                     // Clear the status message after a few seconds
+                     setTimeout(() => { notesStatus.textContent = ''; }, 2500);
+
+                 } catch (error) {
+                     console.error("Error saving note:", error);
+                     notesStatus.textContent = 'Error saving note.';
+                     notesStatus.style.color = '#ff6b6b'; // Red for error
+                 } finally {
+                     saveNoteButton.disabled = false; // Re-enable save button
+                 }
+              }
+
+             /**
+              * Opens or closes the notes panel and handles icon change.
+              * @param {boolean | null} forceOpen - If true, forces open; if false, forces close; if null, toggles.
+              */
+             function toggleNotesPanel(forceOpen = null) {
+                 const isOpen = notesPanel.classList.contains('open');
+                 const shouldOpen = forceOpen === null ? !isOpen : forceOpen; // Determine target state
+
+                 if (shouldOpen) {
+                     notesPanel.classList.add('open'); // Slide panel in
+                     notesToggleButton.innerHTML = '<i class="fa-solid fa-xmark"></i>'; // Change icon to 'X'
+                     notesToggleButton.title = 'Close Notes';
+                     fetchNote(); // Fetch note content when panel is opened
+                 } else {
+                     notesPanel.classList.remove('open'); // Slide panel out
+                     notesToggleButton.innerHTML = '<i class="fa-regular fa-note-sticky"></i>'; // Change icon back to note
+                     notesToggleButton.title = 'Open Notes';
+                     notesStatus.textContent = ''; // Clear any status messages when closed
+                 }
+              }
+
+             /**
+              * Updates UI elements to show a loading state.
+              * @param {boolean} isLoading - True to show loading, false to clear.
+              */
+             function setLoadingState(isLoading) {
+                  const loadingSpans = document.querySelectorAll('.info-overlay .loading, #info-description-notes .loading');
+                  if (isLoading) {
+                      // Show "Loading..." in info overlay values
+                      const overlayElements = document.querySelectorAll('.info-overlay .value');
+                      overlayElements.forEach(el => { if (!el.querySelector('.loading')) { el.innerHTML = '<span class="loading">Loading...</span>'; }});
+                     // Show "Loading..." in main title
+                     if(infoElements.name) infoElements.name.textContent = 'Loading...';
+                     // Show "Loading..." in description area (now in notes panel)
+                     if(infoElements.description && !infoElements.description.querySelector('.loading')) { infoElements.description.innerHTML = '<span class="loading">Loading description...</span>';}
+                  } else {
+                      // Remove "Loading..." spans after data is (or failed to be) loaded
+                      loadingSpans.forEach(span => span.remove());
+                  }
+             }
+
+
+            // --- Event Listeners ---
+            // Attach functions to button clicks
+            notesToggleButton.addEventListener('click', () => toggleNotesPanel());
+            closeNoteButton.addEventListener('click', () => toggleNotesPanel(false));
+            saveNoteButton.addEventListener('click', saveNote);
+
+            // --- Initial Load ---
+            // Fetch the celestial body data as soon as the page loads
+            fetchBodyInfo();
+        });
+    </script>
+</body>
+</html>

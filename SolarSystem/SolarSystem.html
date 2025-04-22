@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System</title>
+    <style>
+        /* --- Base & Layout --- */
+        html { box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+        body {
+            background-color: #000000;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        /* --- Star Background --- */
+        #star-background {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; overflow: hidden; pointer-events: none;
+        }
+        .star {
+            position: absolute; background-color: #ffffff; border-radius: 50%;
+            animation-name: twinkle; animation-iteration-count: infinite;
+            animation-timing-function: ease-in-out; opacity: 0;
+        }
+        .star-small { width: 1px; height: 1px; }
+        .star-medium { width: 2px; height: 2px; }
+        .star-large { width: 3px; height: 3px; }
+        @keyframes twinkle {
+            0% { opacity: 0; transform: scale(0.5); } 25% { opacity: 1.0; transform: scale(1.0); }
+            50% { opacity: 0.5; transform: scale(0.8); } 75% { opacity: 1.0; transform: scale(1.0); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        /* --- Top-Left Info Overlay --- */
+        .info-overlay-static {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            font-size: 0.9em;
+            line-height: 1.6;
+            color: #ccc;
+            text-shadow: 0 0 3px rgba(0,0,0,0.7);
+        }
+
+        /* --- Solar System Container --- */
+        .orbit-container {
+            position: relative;
+            width: 80vmin;
+            height: 80vmin;
+            max-width: 700px;
+            max-height: 700px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Orbit Paths --- */
+        .orbit-path {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+        }
+        #mercury-orbit { width: 15%; height: 15%; }
+        #venus-orbit   { width: 25%; height: 25%; }
+        #earth-orbit   { width: 35%; height: 35%; }
+        #mars-orbit    { width: 45%; height: 45%; }
+        #jupiter-orbit { width: 60%; height: 60%; }
+        #saturn-orbit  { width: 75%; height: 75%; }
+        #uranus-orbit  { width: 88%; height: 88%; }
+        #neptune-orbit { width: 100%; height: 100%; }
+
+        /* --- Sun --- */
+        #sun {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            /* Apply centering transform directly */
+            transform: translate(-50%, -50%);
+            width: 5%;
+            height: 5%;
+            background-color: #FFD700;
+            border-radius: 50%;
+            box-shadow: 0 0 15px 3px rgba(255, 220, 0, 0.8),
+                        0 0 30px 8px rgba(255, 165, 0, 0.5);
+            z-index: 10;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        #sun:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 25px 6px rgba(255, 220, 0, 0.9),
+                        0 0 50px 15px rgba(255, 165, 0, 0.6);
+        }
+
+        /* --- Planet Dots & Rotation --- */
+        .planet-rotator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: center center;
+            animation-name: rotate-orbit;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .celestial-body {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 5;
+            /* Center the planet dot both horizontally and vertically on its top position */
+            transform: translate(-50%, -50%); /* <-- Key Change for vertical alignment */
+            transform-origin: center center;
+            pointer-events: auto;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+             /* Position planet dot at the correct radius along the TOP of the rotating container */
+            left: 50%; /* Always start centered horizontally relative to rotator */
+            /* top offset defines radius, set per planet below */
+        }
+         .celestial-body:hover {
+             transform: translate(-50%, -50%) scale(1.8); /* Keep translate for centering */
+             box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.7);
+             z-index: 6; /* Bring hovered planet slightly forward */
+         }
+
+        /* Planet Name on Hover */
+.celestial-body::after {
+    content: attr(data-name); /* Use data attribute for name */
+    position: absolute;
+    bottom: 130%; /* Position above the planet dot */
+    left: 50%;
+    transform: translateX(-50%); /* Center the text */
+    white-space: nowrap; /* Prevent line breaks */
+    color: #fff;
+    background-color: transparent; /* Changed from rgba(0, 0, 0, 0.6) to transparent */
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 0.8rem; /* Slightly increased font size for better visibility */
+    opacity: 0; /* Hidden by default */
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    pointer-events: none; /* Don't interfere with hovering the planet itself */
+    z-index: 100000; /* High z-index to ensure it appears on top of everything */
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8), 0 0 5px rgba(0, 0, 0, 0.6); /* Added text shadow for readability */
+    font-weight: bold; /* Added bold for better visibility */
+}
+
+.celestial-body:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+        /* --- Individual Planet Styling and Orbital Placement --- */
+        /* Slower animation durations for inner planets */
+        /* Slightly increased sizes for inner planets */
+        /* top: Position based on (50% - orbit_radius%) */
+
+        /* Mercury */
+        #mercury-rotator { animation-duration: 12s; } /* SLOWED DOWN */
+        #mercury { width: 1.5%; height: 1.5%; background-color: #B0AFAF; top: calc(50% - 7.5%); }
+
+        /* Venus */
+        #venus-rotator { animation-duration: 28s; } /* SLOWED DOWN */
+        #venus { width: 2.0%; height: 2.0%; background-color: #E8B47B; top: calc(50% - 12.5%); }
+
+        /* Earth */
+        #earth-rotator { animation-duration: 36.5s; } /* Kept original for reference */
+        #earth { width: 2.0%; height: 2.0%; background-color: #6495ED; top: calc(50% - 17.5%); }
+
+        /* Mars */
+        #mars-rotator { animation-duration: 68.7s; } /* Kept original */
+        #mars { width: 1.5%; height: 1.5%; background-color: #D84D2A; top: calc(50% - 22.5%); }
+
+        /* Jupiter */
+        #jupiter-rotator { animation-duration: 140s; } /* Adjusted slightly */
+        #jupiter { width: 4.0%; height: 4.0%; background-color: #D8B896; top: calc(50% - 30%); }
+
+        /* Saturn */
+        #saturn-rotator { animation-duration: 350s; } /* Kept original */
+        #saturn { width: 3.6%; height: 3.6%; background-color: #F0E68C; top: calc(50% - 37.5%); }
+
+        /* Uranus */
+        #uranus-rotator { animation-duration: 1000s; } /* Kept original */
+        #uranus { width: 2.8%; height: 2.8%; background-color: #AFEEEE; top: calc(50% - 44%); }
+
+        /* Neptune */
+        #neptune-rotator { animation-duration: 2000s; } /* Kept original */
+        #neptune { width: 2.7%; height: 2.7%; background-color: #6495ED; top: calc(50% - 50%); }
+
+
+        /* Orbital Rotation Animation */
+        @keyframes rotate-orbit {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="star-background">
+        <!-- Stars generated by JS -->
+    </div>
+
+    <div class="info-overlay-static">
+        Mercury: 88 days<br>
+        Venus: 7½ months<br>
+        Earth: 1 year<br>
+        Mars: 2 years<br>
+        Jupiter: 12 years<br>
+        Saturn: 30 years<br>
+        Uranus: 84 years<br>
+        Neptune: 165 years
+    </div>
+
+    <div class="orbit-container">
+        <!-- Orbit Paths -->
+        <div id="mercury-orbit" class="orbit-path"></div>
+        <div id="venus-orbit"   class="orbit-path"></div>
+        <div id="earth-orbit"   class="orbit-path"></div>
+        <div id="mars-orbit"    class="orbit-path"></div>
+        <div id="jupiter-orbit" class="orbit-path"></div>
+        <div id="saturn-orbit"  class="orbit-path"></div>
+        <div id="uranus-orbit"  class="orbit-path"></div>
+        <div id="neptune-orbit" class="orbit-path"></div>
+
+        <!-- Sun (Center) -->
+         <!-- Added data-name for consistency, though no hover text shown -->
+        <div id="sun" class="celestial-body" data-name="Sun"></div>
+
+        <!-- Planet Rotating Containers and Dots -->
+        <!-- Added data-name attributes to each planet -->
+        <div id="mercury-rotator" class="planet-rotator">
+            <div id="mercury" class="celestial-body" data-name="Mercury"></div>
+        </div>
+        <div id="venus-rotator" class="planet-rotator">
+            <div id="venus" class="celestial-body" data-name="Venus"></div>
+        </div>
+        <div id="earth-rotator" class="planet-rotator">
+            <div id="earth" class="celestial-body" data-name="Earth"></div>
+        </div>
+        <div id="mars-rotator" class="planet-rotator">
+            <div id="mars" class="celestial-body" data-name="Mars"></div>
+        </div>
+        <div id="jupiter-rotator" class="planet-rotator">
+             <div id="jupiter" class="celestial-body" data-name="Jupiter"></div>
+        </div>
+        <div id="saturn-rotator" class="planet-rotator">
+            <div id="saturn" class="celestial-body" data-name="Saturn"></div>
+        </div>
+        <div id="uranus-rotator" class="planet-rotator">
+            <div id="uranus" class="celestial-body" data-name="Uranus"></div>
+        </div>
+        <div id="neptune-rotator" class="planet-rotator">
+            <div id="neptune" class="celestial-body" data-name="Neptune"></div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Star Generation ---
+             const starBackground = document.getElementById('star-background');
+             const numStars = 300; // Keep density
+
+             if (starBackground) {
+                 for (let i = 0; i < numStars; i++) {
+                     const star = document.createElement('div');
+                     const sizeRoll = Math.random();
+                     let sizeClass = 'star-small';
+                     if (sizeRoll > 0.95) { sizeClass = 'star-large'; }
+                     else if (sizeRoll > 0.7) { sizeClass = 'star-medium'; }
+                     star.className = `star ${sizeClass}`;
+                     star.style.top = `${Math.random() * 100}%`;
+                     star.style.left = `${Math.random() * 100}%`;
+                     const duration = Math.random() * 5 + 3;
+                     const delay = Math.random() * 5;
+                     star.style.animationDuration = `${duration}s`;
+                     star.style.animationDelay = `${delay}s`;
+                     starBackground.appendChild(star);
+                 }
+             }
+             // --- End Star Generation ---
+
+            // --- Click Redirects ---
+            function addRedirectListener(elementId, targetUrl) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        console.log(`Redirecting to ${targetUrl}`);
+                        window.location.href = targetUrl;
+                    });
+                } else {
+                    console.warn(`Element with ID ${elementId} not found for redirection.`);
+                }
+            }
+
+            // Add listeners for each body
+            addRedirectListener('sun', 'sun.html');
+            addRedirectListener('mercury', 'mercury.html');
+            addRedirectListener('venus', 'venus.html');
+            addRedirectListener('earth', 'earth.html');
+            addRedirectListener('mars', 'mars.html');
+            addRedirectListener('jupiter', 'jupiter.html');
+            addRedirectListener('saturn', 'saturn.html');
+            addRedirectListener('uranus', 'uranus.html');
+            addRedirectListener('neptune', 'neptune.html');
+
+        });
+    </script>
+
+</body>
+</html>
