@@ -118,7 +118,7 @@ button { cursor: none; }
 }
 .stars { background: #000 url('https://www.transparenttextures.com/patterns/stardust.png'); z-index: 1; }
 .twinkling { background: transparent url("https://i.imgur.com/XYMF4ca.png") repeat top center; animation: move-twink-back 120s linear infinite; z-index: 2; opacity: 0.9; }
-.nebula { background: url("https://i.imgur.com/sCgbWbQ.png") no-repeat center center; background-size: 180% 180%; opacity: 0.4; z-index: 3; animation: nebula-drift 200s linear infinite alternate; mix-blend-mode: screen; }
+/*.nebula { background: url("https://i.imgur.com/sCgbWbQ.png") no-repeat center center; background-size: 180% 180%; opacity: 0.4; z-index: 3; animation: nebula-drift 200s linear infinite alternate; mix-blend-mode: screen; }*/
 @keyframes move-twink-back { from { background-position: 0 0; } to { background-position: -10000px 5000px; } }
 @keyframes nebula-drift { 0% { transform: scale(1.3) rotate(-4deg); opacity: 0.35; } 50% { opacity: 0.5; } 100% { transform: scale(1.5) rotate(5deg); opacity: 0.4; } }
 

@@ -6,13 +6,13 @@
 }
 
 :root {
-    --glow-color: #00ffff; /* Cyan glow */
-    --primary-glow: rgba(0, 255, 255, 0.7);
-    --secondary-glow: rgba(170, 0, 255, 0.6); /* Purple accent */
+    --glow-color: #5a09a6; /* Cyan glow */
+    --primary-glow: rgba(187, 92, 255, 0.573);
+    --secondary-glow: rgba(63, 13, 113, 0.6); /* Purple accent */
     --dark-bg: #050818; /* Very dark deep blue */
     --panel-bg: rgba(15, 20, 45, 0.7); /* Semi-transparent panel */
     --text-color: #e0e8ff;
-    --accent-color: #00ffff;
+    --accent-color: #5d24b7;
     --purple-accent: #aa00ff;
     --input-bg: rgba(0, 0, 20, 0.5);
     --border-color: rgba(0, 255, 255, 0.2);
