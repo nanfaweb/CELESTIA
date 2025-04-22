@@ -21,9 +21,9 @@
     }
 
     // Clear local storage on browser close
-    window.addEventListener("beforeunload", () => {
-        localStorage.removeItem("userEmail");
-    }); 
+    // window.addEventListener("beforeunload", () => {
+    //     localStorage.removeItem("userEmail");
+    // }); 
 
     // --- Configuration ---
     const DEFAULT_USERNAME = "Guest Explorer";
