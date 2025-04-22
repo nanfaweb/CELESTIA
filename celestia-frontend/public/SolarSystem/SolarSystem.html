@@ -245,33 +245,33 @@
 
         <!-- Sun (Center) -->
          <!-- Added data-name for consistency, though no hover text shown -->
-        <div id="sun" class="celestial-body" data-name="Sun"></div>
+        <div id="sun" class="celestial-body" data-name="Sun" data-target="sun.html"></div>
 
         <!-- Planet Rotating Containers and Dots -->
         <!-- Added data-name attributes to each planet -->
         <div id="mercury-rotator" class="planet-rotator">
-            <div id="mercury" class="celestial-body" data-name="Mercury"></div>
+            <div id="mercury" class="celestial-body" data-name="Mercury" data-target="mercury.html"></div>
         </div>
         <div id="venus-rotator" class="planet-rotator">
-            <div id="venus" class="celestial-body" data-name="Venus"></div>
+            <div id="venus" class="celestial-body" data-name="Venus" data-target="venus.html"></div>
         </div>
         <div id="earth-rotator" class="planet-rotator">
-            <div id="earth" class="celestial-body" data-name="Earth"></div>
+            <div id="earth" class="celestial-body" data-name="Earth" data-target="earth.html"></div>
         </div>
         <div id="mars-rotator" class="planet-rotator">
-            <div id="mars" class="celestial-body" data-name="Mars"></div>
+            <div id="mars" class="celestial-body" data-name="Mars" data-target="mars.html"></div>
         </div>
         <div id="jupiter-rotator" class="planet-rotator">
-             <div id="jupiter" class="celestial-body" data-name="Jupiter"></div>
+             <div id="jupiter" class="celestial-body" data-name="Jupiter" data-target="jupiter.html"></div>
         </div>
         <div id="saturn-rotator" class="planet-rotator">
-            <div id="saturn" class="celestial-body" data-name="Saturn"></div>
+            <div id="saturn" class="celestial-body" data-name="Saturn" data-target="saturn.html"></div>
         </div>
         <div id="uranus-rotator" class="planet-rotator">
-            <div id="uranus" class="celestial-body" data-name="Uranus"></div>
+            <div id="uranus" class="celestial-body" data-name="Uranus" data-target="uranus.html"></div>
         </div>
         <div id="neptune-rotator" class="planet-rotator">
-            <div id="neptune" class="celestial-body" data-name="Neptune"></div>
+            <div id="neptune" class="celestial-body" data-name="Neptune" data-target="neptune.html"></div>
         </div>
     </div>
 
@@ -301,18 +301,36 @@
              }
              // --- End Star Generation ---
 
+            function redirectWithLoader(targetUrl) {
+                localStorage.setItem("destinationAfterLoad", targetUrl); // Store the target URL
+                window.location.href = "../Loader/loader.html"; // Redirect to the loader page
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const planets = document.querySelectorAll(".celestial-body"); // Select all celestial bodies
+                planets.forEach(planet => {
+                    planet.addEventListener("click", () => {
+                        const targetUrl = planet.dataset.target; // Get the target URL from the data attribute
+                        if (targetUrl) {
+                            redirectWithLoader(targetUrl);
+                        } else {
+                            console.error("No target URL specified for this celestial body.");
+                        }
+                    });
+                });
+            });
+
             // --- Click Redirects ---
             function addRedirectListener(elementId, targetUrl) {
-                const element = document.getElementById(elementId);
-                if (element) {
-                    element.addEventListener('click', (event) => {
-                        event.stopPropagation();
-                        console.log(`Redirecting to ${targetUrl}`);
-                        window.location.href = targetUrl;
-                    });
-                } else {
-                    console.warn(`Element with ID ${elementId} not found for redirection.`);
-                }
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.addEventListener('click', (event) => {
+                event.stopPropagation();
+                redirectWithLoader(`/SolarSystem/${targetUrl}`);
+                });
+            } else {
+                console.warn(`Element with ID ${elementId} not found for redirection.`);
+            }
             }
 
             // Add listeners for each body
@@ -325,7 +343,6 @@
             addRedirectListener('saturn', 'saturn.html');
             addRedirectListener('uranus', 'uranus.html');
             addRedirectListener('neptune', 'neptune.html');
-
         });
     </script>
 

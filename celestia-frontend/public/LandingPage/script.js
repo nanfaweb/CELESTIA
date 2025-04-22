@@ -1,5 +1,10 @@
+function redirectWithLoader(targetUrl) {
+    localStorage.setItem("destinationAfterLoad", targetUrl); // Store the target URL
+    window.location.href = "../Loader/loader.html"; // Redirect to the loader page
+}
+
 // Wrap everything in an IIFE
-(() => {
+(() => { 
     // Check if email is passed via query parameters (Google login)
     const urlParams = new URLSearchParams(window.location.search);
     const googleEmail = urlParams.get("email");
