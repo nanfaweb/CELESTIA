@@ -59,6 +59,23 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// READ a single celestial body by Name (case-insensitive)
+router.get("/by-name/:name", async (req, res) => {
+  try {
+    const { name } = req.params;
+    const result = await (await pool).request()
+      .input("name", name)
+      .query("SELECT * FROM CelestialBodies WHERE LOWER(Name) = LOWER(@name)");
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ success: false, message: "Celestial body not found" });
+    }
+    res.json({ success: true, data: result.recordset[0] });
+  } catch (error) {
+    console.error("READ celestial body by name error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // UPDATE a celestial body by BodyID
 router.put("/:id", async (req, res) => {
   try {
