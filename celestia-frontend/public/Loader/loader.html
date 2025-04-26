@@ -277,14 +277,14 @@
 
           // Redirect after full animation
           setTimeout(() => {
-              const destination = localStorage.getItem('destinationAfterLoad');
+              const destination = sessionStorage.getItem('destinationAfterLoad');
               console.log("🧭 Loader: Redirecting to", destination || "/");
 
               if (destination) {
-                  localStorage.removeItem('destinationAfterLoad'); // Clear the stored URL
-                  window.location.href = destination; // Redirect to the target URL
+                  sessionStorage.removeItem('destinationAfterLoad');
+                  window.location.href = destination;
               } else {
-                  window.location.href = "/"; // Fallback redirect
+                  window.location.href = "/";
               }
           }, redirectDelay);
       });

@@ -302,7 +302,7 @@
              // --- End Star Generation ---
 
             function redirectWithLoader(targetUrl) {
-                localStorage.setItem("destinationAfterLoad", targetUrl); // Store the target URL
+                sessionStorage.setItem("destinationAfterLoad", targetUrl); // Store the target URL
                 window.location.href = "../Loader/loader.html"; // Redirect to the loader page
             }
 

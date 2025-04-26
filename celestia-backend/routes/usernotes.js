@@ -2,10 +2,16 @@ const express = require("express");
 const router = express.Router();
 const { pool } = require("../db");
 
-// CREATE a new note
+// CREATE or REPLACE a note: delete existing note for user/body, then insert new note
 router.post("/", async (req, res) => {
   try {
     const { userID, bodyID, noteText } = req.body;
+    // Delete existing note if any
+    await (await pool).request()
+      .input("userID", userID)
+      .input("bodyID", bodyID)
+      .query("DELETE FROM UserNotes WHERE UserID = @userID AND BodyID = @bodyID");
+    // Insert new note
     const result = await (await pool).request()
       .input("userID", userID)
       .input("bodyID", bodyID)
@@ -17,7 +23,7 @@ router.post("/", async (req, res) => {
       `);
     res.status(201).json({ success: true, noteID: result.recordset[0].NoteID });
   } catch (error) {
-    console.error("CREATE note error:", error);
+    console.error("CREATE/REPLACE note error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -33,22 +39,40 @@ router.get("/", async (req, res) => {
   }
 });
 
-// READ a single note by NoteID
-router.get("/:id", async (req, res) => {
+// GET the note for a user and body
+router.get("/by-user-body", async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await (await pool).request()
-      .input("id", id)
-      .query("SELECT * FROM UserNotes WHERE NoteID = @id");
-    if (result.recordset.length === 0) {
-      return res.status(404).json({ success: false, message: "Note not found" });
+    const { userID, bodyID } = req.query;
+    if (!userID || !bodyID) {
+      return res.status(400).json({ success: false, message: "Missing userID or bodyID" });
     }
-    res.json({ success: true, data: result.recordset[0] });
+    const result = await (await pool).request()
+      .input("userID", userID)
+      .input("bodyID", bodyID)
+      .query("SELECT * FROM UserNotes WHERE UserID = @userID AND BodyID = @bodyID");
+    res.json({ success: true, data: result.recordset[0] || null });
   } catch (error) {
     console.error("READ note error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+// READ a single note by NoteID
+// router.get("/:id", async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const result = await (await pool).request()
+//       .input("id", id)
+//       .query("SELECT * FROM UserNotes WHERE NoteID = @id");
+//     if (result.recordset.length === 0) {
+//       return res.status(404).json({ success: false, message: "Note not found" });
+//     }
+//     res.json({ success: true, data: result.recordset[0] });
+//   } catch (error) {
+//     console.error("READ note error:", error);
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// });
 
 // UPDATE a note by NoteID
 router.put("/:id", async (req, res) => {
