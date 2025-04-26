@@ -89,6 +89,16 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.get("/", async (req, res) => {
+  try {
+      const result = await (await pool).request().query("SELECT Username AS name FROM Users");
+      res.json(result.recordset);
+  } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ success: false, message: "Failed to fetch users" });
+  }
+});
+
 // READ a single user by ID
 router.get("/:id", async (req, res) => {
   try {
