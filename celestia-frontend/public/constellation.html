@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Constellation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        body {
+            background-color: #000000;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        /* Star Background */
+        #star-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .star {
+            position: absolute;
+            background-color: #ffffff;
+            border-radius: 50%;
+            animation: twinkle infinite ease-in-out;
+            opacity: 0;
+        }
+        .star-small { width: 1px; height: 1px; }
+        .star-medium { width: 2px; height: 2px; }
+        .star-large { width: 3px; height: 3px; }
+
+        @keyframes twinkle {
+            0% { opacity: 0; transform: scale(0.5); }
+            25% { opacity: 1.0; transform: scale(1.0); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+            75% { opacity: 1.0; transform: scale(1.0); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        /* Welcome Text Styles - Initially hidden */
+        .welcome-text {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            color: #ffffff;
+            text-align: center;
+            z-index: 10;
+            text-shadow: 0 0 10px rgba(160, 48, 240, 0.7),
+                         0 0 20px rgba(160, 48, 240, 0.7);
+            letter-spacing: 2px;
+            animation: glow 2s ease-in-out infinite alternate;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(160, 48, 240, 0.7),
+                             0 0 20px rgba(160, 48, 240, 0.7);
+            }
+            to {
+                text-shadow: 0 0 20px rgba(160, 48, 240, 0.9),
+                             0 0 30px rgba(160, 48, 240, 0.9),
+                             0 0 40px rgba(160, 48, 240, 0.7),
+                             0 0 50px rgba(160, 48, 240, 0.5);
+            }
+        }
+
+        /* Initial blur state for background */
+        .blurred {
+            filter: blur(3px);
+            opacity: 0.3;
+            transition: all 0.8s ease-in-out;
+        }
+
+        /* Active state for background */
+        .active {
+            filter: blur(0);
+            opacity: 1;
+        }
+
+        /* Intro Text Style - Moved up */
+        .intro-text {
+            position: fixed;
+            top: 35%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            white-space: nowrap;
+            z-index: 20;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* Start Button Style - Moved down */
+        .start-button {
+            position: fixed;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: #fff;
+            background: transparent;
+            border: 2px solid rgba(160, 48, 240, 0.7);
+            border-radius: 30px;
+            cursor: pointer;
+            z-index: 20;
+            transition: all 0.3s ease;
+            animation: buttonGlow 2s infinite alternate;
+        }
+
+        .start-button:hover {
+            background: rgba(160, 48, 240, 0.2);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        @keyframes buttonGlow {
+            from {
+                box-shadow: 0 0 10px rgba(160, 48, 240, 0.7),
+                           0 0 20px rgba(160, 48, 240, 0.7);
+            }
+            to {
+                box-shadow: 0 0 20px rgba(160, 48, 240, 0.9),
+                           0 0 30px rgba(160, 48, 240, 0.9),
+                           0 0 40px rgba(160, 48, 240, 0.7);
+            }
+        }
+
+        /* Update Constellation Container */
+        .constellation-container {
+            position: fixed;
+            top: 80px; /* Reduced from 100px */
+            left: 0;
+            width: 100vw;
+            height: calc(100vh - 120px); /* Adjusted to prevent overflow */
+            display: none;
+        }
+
+        /* Update Node Styles for better visibility on full screen */
+        .node {
+            position: absolute;
+            width: 20px;  /* Slightly larger for better visibility */
+            height: 20px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px 3px rgba(255, 220, 0, 0.8),
+                       0 0 30px 8px rgba(255, 165, 0, 0.5);
+            z-index: 2;
+        }
+
+        /* Update Edge Styles */
+        .edge {
+            position: absolute;
+            height: 0.5px;  /* Decreased from 1px */
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0.05) 0%,  /* More subtle gradient */
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.05) 100%);
+            transform-origin: left center;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Add Tooltip Styles */
+        .tooltip {
+            position: fixed;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 15px rgba(160, 48, 240, 0.3);
+            border: 1px solid rgba(160, 48, 240, 0.2);
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="star-background" class="blurred"></div>
+    <h1 class="welcome-text">Home of Celestia</h1>
+    <div class="intro-text">LIGHT UP THE NIGHT SKY...</div>
+    <button class="start-button">Illuminate</button>
+    <div class="constellation-container" id="constellation"></div>
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        document.querySelector('.start-button').addEventListener('click', function() {
+            // Remove intro elements
+            document.querySelector('.intro-text').style.opacity = '0';
+            this.style.opacity = '0';
+            
+            setTimeout(() => {
+                document.querySelector('.intro-text').remove();
+                this.remove();
+                
+                // Show welcome text
+                document.querySelector('.welcome-text').style.opacity = '1';
+                
+                // Activate background
+                document.getElementById('star-background').classList.add('active');
+                
+                // Show and create constellation
+                document.getElementById('constellation').style.display = 'block';
+                createConstellation();
+            }, 500);
+        });
+
+        // Initialize on DOM load
+        document.addEventListener('DOMContentLoaded', () => {
+            const constellation = document.getElementById('constellation');
+            const starBackground = document.getElementById('star-background');
+            
+            // Generate background stars
+            const numStars = 300;
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                const sizeRoll = Math.random();
+                let sizeClass = 'star-small';
+                if (sizeRoll > 0.95) { sizeClass = 'star-large'; }
+                else if (sizeRoll > 0.7) { sizeClass = 'star-medium'; }
+                star.className = `star ${sizeClass}`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                const duration = Math.random() * 5 + 3;
+                const delay = Math.random() * 5;
+                star.style.animationDuration = `${duration}s`;
+                star.style.animationDelay = `${delay}s`;
+                starBackground.appendChild(star);
+            }
+        });
+
+        // Constellation creation function
+        async function createConstellation() {
+            try {
+                let users = [];
+                try {
+                    const response = await fetch('http://localhost:3001/api/users');
+                    if (!response.ok) throw new Error('Failed to fetch users');
+                    users = await response.json();
+                } catch (fetchError) {
+                    console.warn('Using test data due to fetch error:', fetchError);
+                    users = [
+                        { name: 'User 1' },
+                        { name: 'User 2' },
+                        { name: 'User 3' },
+                        { name: 'User 4' },
+                        { name: 'User 5' }
+                    ];
+                }
+
+                const constellation = document.getElementById('constellation');
+                const tooltip = document.getElementById('tooltip');
+                const headerHeight = 80; // Reduced from 100
+                // Create nodes for each user
+                const nodes = users.map(user => {
+                    const node = document.createElement('div');
+                    node.className = 'node';
+                    
+                    // Position within container bounds, below header
+                    const x = Math.random() * (window.innerWidth * 0.8) + (window.innerWidth * 0.1);
+                    const y = headerHeight + Math.random() * (window.innerHeight - headerHeight - 150); // Added more padding at bottom
+                    
+                    node.style.left = `${x}px`;
+                    node.style.top = `${y}px`;
+
+                    // Tooltip events
+                    node.addEventListener('mouseenter', (e) => {
+                        tooltip.textContent = user.name;
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = `${e.pageX + 10}px`;
+                        tooltip.style.top = `${e.pageY + 10}px`;
+                    });
+
+                    node.addEventListener('mousemove', (e) => {
+                        tooltip.style.left = `${e.pageX + 10}px`;
+                        tooltip.style.top = `${e.pageY + 10}px`;
+                    });
+
+                    node.addEventListener('mouseleave', () => {
+                        tooltip.style.display = 'none';
+                    });
+
+                    constellation.appendChild(node);
+                    return { element: node, x, y };
+                });
+
+                // Create edges between nodes
+                nodes.forEach((node, i) => {
+                    // Connect to 2-3 nearest nodes
+                    const connections = Math.floor(Math.random() * 2) + 2;
+                    const otherNodes = [...nodes];
+                    otherNodes.splice(i, 1);
+
+                    // Sort other nodes by distance
+                    otherNodes.sort((a, b) => {
+                        const distA = Math.hypot(a.x - node.x, a.y - node.y);
+                        const distB = Math.hypot(b.x - node.x, b.y - node.y);
+                        return distA - distB;
+                    });
+
+                    // Create edges to nearest nodes
+                    for (let j = 0; j < connections && j < otherNodes.length; j++) {
+                        const edge = document.createElement('div');
+                        edge.className = 'edge';
+
+                        const dx = otherNodes[j].x - node.x;
+                        const dy = otherNodes[j].y - node.y;
+                        const distance = Math.hypot(dx, dy);
+                        const angle = Math.atan2(dy, dx);
+
+                        edge.style.width = `${distance}px`;
+                        edge.style.left = `${node.x}px`;
+                        edge.style.top = `${node.y}px`;
+                        edge.style.transform = `rotate(${angle}rad)`;
+
+                        constellation.appendChild(edge);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error creating constellation:', error);
+            }
+        }
+    </script>
+</body>
+</html>

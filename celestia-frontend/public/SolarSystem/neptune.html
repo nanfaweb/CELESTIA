@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="celestial-body-name" content="Neptune">
+    <title>Neptune</title>
+    <link rel="preload" as="image" href="https://www.solarsystemscope.com/textures/download/2k_neptune.jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <style>
+        html{box-sizing:border-box}*,*:before,*:after{box-sizing:inherit}body{background-color:#000;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:0;margin:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;color:#fff;overflow:hidden}#star-background{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;overflow:hidden;pointer-events:none}.star{position:absolute;background-color:#fff;border-radius:50%;animation-name:twinkle;animation-iteration-count:infinite;animation-timing-function:ease-in-out;opacity:0}.star-small{width:1px;height:1px}.star-medium{width:2px;height:2px}.star-large{width:3px;height:3px}@keyframes twinkle{0%{opacity:0;transform:scale(.5)}25%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}75%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.5)}}.info-overlay{position:fixed;top:30px;left:30px;z-index:10;background:0 0;border:none;padding:0;text-align:left;font-size:.85em;line-height:1.7;pointer-events:none}.info-overlay p{margin:5px 0;pointer-events:auto}.info-overlay .label{font-weight:400;color:#aaa;min-width:120px;display:inline-block;margin-right:10px}.info-overlay .value{color:#fff;font-weight:300}.info-overlay .loading{color:#777;font-style:italic}.planet-visual-area{display:flex;flex-direction:column;align-items:center;text-align:center;z-index:1}.planet-container{margin-bottom:25px;position:relative}.section-banner{height:300px;width:300px;position:relative;background-size:cover;background-position:left;border-radius:50%;box-shadow:0 0 20px rgba(255,255,255,.1),-5px 0 8px rgba(195,244,255,.6) inset,15px 2px 25px rgba(0,0,0,.9) inset,-24px -2px 34px rgba(195,244,255,.4) inset,250px 0 44px rgba(0,0,0,.6) inset,150px 0 38px rgba(0,0,0,.75) inset;overflow:hidden;margin:0 auto;background-color:#3f54ba;background-image:url(https://www.solarsystemscope.com/textures/download/2k_neptune.jpg);animation:planetRotate 35s linear 0s infinite}@keyframes planetRotate{0%{background-position:0% 50%}100%{background-position:400px 50%}}.planet-name-title{color:#fff;margin-top:15px;font-size:2.5em;font-weight:200;letter-spacing:3px;text-transform:uppercase}#notes-toggle-btn{position:fixed;bottom:30px;right:30px;width:50px;height:50px;background-color:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:50%;font-size:1.4em;cursor:pointer;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:1000;display:flex;justify-content:center;align-items:center;transition:background-color .2s ease,transform .2s ease,border-color .2s ease}#notes-toggle-btn:hover{background-color:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4);transform:scale(1.05)}.notes-panel{position:fixed;top:0;right:0;width:320px;height:100%;background-color:rgba(10,10,10,.85);border-left:1px solid rgba(255,255,255,.15);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:1001;transform:translateX(100%);transition:transform .4s cubic-bezier(.25,.8,.25,1);padding:25px;box-sizing:border-box;display:flex;flex-direction:column;color:#fff}.notes-panel.open{transform:translateX(0)}.notes-panel h3{margin-top:0;margin-bottom:20px;color:#fff;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:12px;font-weight:400;letter-spacing:1px}.notes-panel textarea{flex-grow:1;width:100%;background-color:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2);border-radius:5px;padding:12px;box-sizing:border-box;color:#fff;font-size:1em;line-height:1.5;resize:none;margin-bottom:15px}.notes-panel textarea:focus{outline:0;border-color:rgba(255,255,255,.5);box-shadow:0 0 8px rgba(255,255,255,.1)}.notes-panel .button-container{display:flex;justify-content:space-between}.notes-panel button{padding:10px 18px;border:1px solid rgba(255,255,255,.3);border-radius:5px;cursor:pointer;font-size:.95em;font-weight:600;background-color:transparent;color:#fff;transition:background-color .2s ease,transform .1s ease,border-color .2s ease}.notes-panel button:active{transform:scale(.98)}.notes-panel .save-note-btn:hover{background-color:rgba(255,255,255,.15);border-color:rgba(255,255,255,.5)}.notes-panel .close-note-btn{color:#aaa;border-color:rgba(255,255,255,.15)}.notes-panel .close-note-btn:hover{background-color:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3)}.notes-status{margin-top:12px;font-size:.85em;color:#aaa;min-height:1.3em;text-align:center;font-weight:300}
+         /* --- Back Button --- */
+        #back-button {
+            position: fixed;
+            top: 10px; /* Moved even higher up */
+            right: 20px; /* Position at right side */
+            z-index: 1000; /* Below notes panel but above most content */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 32px; /* Thinner width */
+            height: 32px; /* Thinner height */
+            background-color: rgba(255, 255, 255, 0.06); /* More subtle background */
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.12); /* Even thinner border */
+            border-radius: 4px; /* More squared corners for futuristic look */
+            font-size: 1em; /* Smaller arrow size */
+            line-height: 1; /* Ensure arrow is centered */
+            text-decoration: none;
+            cursor: pointer;
+            backdrop-filter: blur(8px); /* Enhanced blur effect */
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1); /* More sophisticated easing */
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.03); /* Very subtle glow */
+        }
+
+        #back-button:hover {
+            background-color: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px); /* Subtle lift effect */
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.08); /* Enhanced glow on hover */
+        }
+
+        #back-button:active {
+            transform: translateY(0) scale(0.98); /* Press effect */
+        }
+    
+    </style>
+</head>
+<body>
+    <a href="SolarSystem.html" id="back-button" title="Back to Solar System View">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span class="sr-only">Back</span>
+    </a>
+    <div id="star-background"></div>
+    <div class="info-overlay">
+        <p><span class="label">Type:</span> <span class="value" id="info-type"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Mass (kg):</span> <span class="value" id="info-mass"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Diameter (km):</span> <span class="value" id="info-diameter"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Gravity (m/s²):</span> <span class="value" id="info-gravity"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Orbital Period (days):</span> <span class="value" id="info-orbital"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Discovered By:</span> <span class="value" id="info-discoveredBy"><span class="loading">Loading...</span></span></p>
+        <p><span class="label">Discovery Date:</span> <span class="value" id="info-discoveryDate"><span class="loading">Loading...</span></span></p>
+    </div>
+    <div class="planet-visual-area">
+        <div class="planet-container">
+            <div class="section-banner neptune-banner"></div>
+        </div>
+        <div id="planet-name-display" class="planet-name-title">Loading...</div>
+    </div>
+    <button id="notes-toggle-btn" title="Open Notes"><i class="fa-regular fa-note-sticky"></i></button>
+    <div class="notes-panel" id="notes-panel">
+        <h3>My Notes for <span id="notes-body-name">Neptune</span></h3>
+        <div id="info-description-notes" style="font-size: 0.9em; color: #ccc; margin-bottom: 15px; max-height: 150px; overflow-y: auto; line-height: 1.5; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;"><span class="loading">Loading description...</span></div>
+        <textarea id="note-text" placeholder="Add your personal notes here..."></textarea>
+        <div class="button-container"><button class="save-note-btn" id="save-note-btn">Save Note</button><button class="close-note-btn" id="close-note-btn">Close</button></div>
+        <div class="notes-status" id="notes-status"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const metaTagName = document.querySelector('meta[name="celestial-body-name"]');
+            const currentBodyName = metaTagName ? metaTagName.content : 'Neptune';
+
+            const currentUserId = sessionStorage.getItem('userID');
+            if (!currentUserId) {
+                console.error("User is not logged in. Redirecting to login page...");
+                window.location.href = "/login/index.html";
+                return;
+            }
+            let currentBodyId = null;
+
+            const infoElements = {
+                type: document.getElementById('info-type'),
+                mass: document.getElementById('info-mass'),
+                diameter: document.getElementById('info-diameter'),
+                gravity: document.getElementById('info-gravity'),
+                orbital: document.getElementById('info-orbital'),
+                discoveredBy: document.getElementById('info-discoveredBy'),
+                discoveryDate: document.getElementById('info-discoveryDate'),
+                name: document.getElementById('planet-name-display'),
+                description: document.getElementById('info-description-notes')
+            };
+            const notesToggleButton = document.getElementById('notes-toggle-btn');
+            const notesPanel = document.getElementById('notes-panel');
+            const closeNoteButton = document.getElementById('close-note-btn');
+            const saveNoteButton = document.getElementById('save-note-btn');
+            const noteTextarea = document.getElementById('note-text');
+            const notesBodyNameSpan = document.getElementById('notes-body-name');
+            const notesStatus = document.getElementById('notes-status');
+            const starBackground = document.getElementById('star-background');
+
+            const numStars = 250;
+            if (starBackground) {
+                for (let i = 0; i < numStars; i++) {
+                    const star = document.createElement('div');
+                    const sizeRoll = Math.random();
+                    let sizeClass = 'star-small';
+                    if (sizeRoll > 0.9) { sizeClass = 'star-large'; }
+                    else if (sizeRoll > 0.6) { sizeClass = 'star-medium'; }
+
+                    star.className = `star ${sizeClass}`;
+                    star.style.top = `${Math.random() * 100}%`;
+                    star.style.left = `${Math.random() * 100}%`;
+                    const duration = Math.random() * 5 + 3;
+                    const delay = Math.random() * 5;
+                    star.style.animationDuration = `${duration}s`;
+                    star.style.animationDelay = `${delay}s`;
+                    starBackground.appendChild(star);
+                }
+            }
+
+            function formatNumber(numStr) {
+                if (!numStr) return 'N/A';
+                const num = parseFloat(numStr);
+                if (isNaN(num)) return 'N/A';
+                if (Math.abs(num) > 1e21) return num.toExponential(4);
+                return num.toLocaleString('en-US', { maximumFractionDigits: 2 });
+            }
+
+            function formatDate(dateStr) {
+                if (!dateStr) return 'N/A';
+                try {
+                    const date = new Date(dateStr);
+                    if (isNaN(date.getTime())) {
+                        const parts = dateStr.split('-');
+                        if (parts.length === 3) {
+                            const checkDate = new Date(Date.UTC(parts[0], parseInt(parts[1], 10) - 1, parts[2]));
+                            if (!isNaN(checkDate.getTime())) {
+                                return checkDate.toLocaleDateString('en-GB', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' });
+                            }
+                        }
+                        return 'N/A';
+                    }
+                    const offsetDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+                    return offsetDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+                } catch (e) {
+                    console.error("Date formatting error:", e);
+                    return 'N/A';
+                }
+            }
+
+            async function fetchBodyInfo() {
+                console.log(`Fetching info for: ${currentBodyName}`);
+                setLoadingState(true);
+                try {
+                    const response = await fetch(`/api/celestial-bodies/by-name/${encodeURIComponent(currentBodyName)}`);
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    const result = await response.json();
+                    const data = result.data ? result.data : null;
+                    if (!data) throw new Error("Body not found in database.");
+
+                    currentBodyId = data.BodyID;
+                    notesBodyNameSpan.textContent = data.Name;
+
+                    infoElements.name.textContent = data.Name;
+                    infoElements.type.textContent = data.Type || 'N/A';
+                    infoElements.mass.textContent = formatNumber(data.Mass);
+                    infoElements.diameter.textContent = formatNumber(data.Diameter);
+                    infoElements.gravity.textContent = data.Gravity ? parseFloat(data.Gravity).toFixed(2) : 'N/A';
+                    infoElements.orbital.textContent = formatNumber(data.OrbitalPeriod);
+                    infoElements.discoveredBy.textContent = data.DiscoveredBy || 'N/A';
+                    infoElements.discoveryDate.textContent = formatDate(data.DiscoveryDate);
+                    if (infoElements.description) {
+                        infoElements.description.textContent = data.Description || 'No description available.';
+                        const descLoading = infoElements.description.querySelector('.loading');
+                        if (descLoading) descLoading.remove();
+                    }
+                } catch (error) {
+                    console.warn("Error fetching body info:", error);
+                    if (infoElements.name) infoElements.name.textContent = `${currentBodyName} (Error)`;
+                }
+                setLoadingState(false);
+            }
+
+            async function fetchNote() {
+                if (!currentBodyId || !currentUserId) {
+                    console.warn("Cannot fetch note: Missing BodyID or UserID");
+                    noteTextarea.value = '';
+                    notesStatus.textContent = 'Error: User or Body info missing.';
+                    notesStatus.style.color = '#ff6b6b';
+                    return;
+                }
+                notesStatus.textContent = 'Loading note...';
+                notesStatus.style.color = '#aaaaaa';
+                try {
+                    const response = await fetch(`/api/user-notes/by-user-body?userID=${currentUserId}&bodyID=${currentBodyId}`);
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        noteTextarea.value = result.data.NoteText || '';
+                        notesStatus.textContent = 'Note loaded.';
+                    } else {
+                        noteTextarea.value = '';
+                        notesStatus.textContent = 'No previous note.';
+                    }
+                } catch (error) {
+                    console.error("Error fetching note:", error);
+                    notesStatus.textContent = 'Error loading note.';
+                    notesStatus.style.color = '#ff6b6b';
+                }
+            }
+
+            async function saveNote() {
+                if (!currentBodyId || !currentUserId) {
+                    notesStatus.textContent = 'Error: Cannot save note.';
+                    notesStatus.style.color = '#ff6b6b';
+                    return;
+                }
+                const noteText = noteTextarea.value;
+                notesStatus.textContent = 'Saving...';
+                notesStatus.style.color = '#aaaaaa';
+                saveNoteButton.disabled = true;
+                try {
+                    const apiUrl = '/api/user-notes/';
+                    const payload = {
+                        userID: currentUserId,
+                        bodyID: currentBodyId,
+                        noteText: noteText
+                    };
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    const result = await response.json();
+                    if (result.success) {
+                        notesStatus.textContent = 'Note saved!';
+                        notesStatus.style.color = '#51cf66';
+                        setTimeout(() => { notesStatus.textContent = ''; }, 2500);
+                    } else {
+                        throw new Error(result.message || "Unknown error");
+                    }
+                } catch (error) {
+                    console.error("Error saving note:", error);
+                    notesStatus.textContent = 'Error saving note.';
+                    notesStatus.style.color = '#ff6b6b';
+                } finally {
+                    saveNoteButton.disabled = false;
+                }
+            }
+
+            function toggleNotesPanel(forceOpen = null) {
+                const isOpen = notesPanel.classList.contains('open');
+                const shouldOpen = forceOpen === null ? !isOpen : forceOpen;
+                if (shouldOpen) {
+                    notesPanel.classList.add('open');
+                    notesToggleButton.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                    notesToggleButton.title = 'Close Notes';
+                    fetchNote();
+                } else {
+                    notesPanel.classList.remove('open');
+                    notesToggleButton.innerHTML = '<i class="fa-regular fa-note-sticky"></i>';
+                    notesToggleButton.title = 'Open Notes';
+                    notesStatus.textContent = '';
+                }
+            }
+
+            function setLoadingState(isLoading) {
+                const loadingSpans = document.querySelectorAll('.info-overlay .loading, #info-description-notes .loading');
+                if (isLoading) {
+                    const overlayElements = document.querySelectorAll('.info-overlay .value');
+                    overlayElements.forEach(el => {
+                        if (!el.querySelector('.loading')) { 
+                            el.innerHTML = '<span class="loading">Loading...</span>'; 
+                        }
+                    });
+                    if (infoElements.name) infoElements.name.textContent = 'Loading...';
+                    if (infoElements.description && !infoElements.description.querySelector('.loading')) { 
+                        infoElements.description.innerHTML = '<span class="loading">Loading description...</span>'; 
+                    }
+                } else {
+                    loadingSpans.forEach(span => span.remove());
+                }
+            }
+
+            notesToggleButton.addEventListener('click', () => toggleNotesPanel());
+            closeNoteButton.addEventListener('click', () => toggleNotesPanel(false));
+            saveNoteButton.addEventListener('click', saveNote);
+
+            fetchBodyInfo();
+        });
+    </script>
+</body>
+</html>

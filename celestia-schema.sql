@@ -186,6 +186,8 @@ CREATE TABLE CelestialBodies (
 );
 GO
 
+select * from CelestialBodies
+
 -- Create UserNotes table for storing user notes on celestial bodies
 CREATE TABLE UserNotes (
     NoteID INT IDENTITY(1,1) PRIMARY KEY,
@@ -198,6 +200,8 @@ CREATE TABLE UserNotes (
     CONSTRAINT CHK_NotesDateValid CHECK (UpdatedAt IS NULL OR UpdatedAt >= CreatedAt)
 );
 GO
+
+select TOP 1 * from UserNotes
 
 -- Create UserPlanets table for storing user-created custom planets
 CREATE TABLE UserPlanets (
@@ -356,19 +360,28 @@ select * from Friends
 INSERT INTO CelestialBodies 
   (Name, Type, Mass, Diameter, Gravity, OrbitalPeriod, Description, DiscoveredBy, DiscoveryDate, CreatedByUserID)
 VALUES
-  ('Earth', 'Planet', 5972000.00, 12742.00, 9.81, 365.25, 'Our home planet', 'Ancient', '2000-01-01', 1),
-  ('Mars', 'Planet', 639000.00, 6779.00, 3.71, 687.00, 'The Red Planet', 'Ancient', '2000-01-01', 2);
-GO
+  ('Sun', 'Star', 1989000000.00, 1391400.00, 274.0, 0.00, 'The star at the center of our solar system.', 'Ancient', '2000-01-01', 1),
+  ('Mercury', 'Planet', 330.11, 4879.00, 3.7, 87.97, 'The smallest planet and closest to the Sun.', 'Ancient', '2000-01-01', 1),
+  ('Venus', 'Planet', 4868.5, 12104.00, 8.87, 224.70, 'Second planet from the Sun, known for its thick, toxic atmosphere.', 'Ancient', '2000-01-01', 1),
+  ('Earth', 'Planet', 5972.00, 12742.00, 9.81, 365.25, 'Our home planet.', 'Ancient', '2000-01-01', 1),
+  ('Mars', 'Planet', 639.00, 6779.00, 3.71, 687.00, 'The Red Planet.', 'Ancient', '2000-01-01', 1),
+  ('Jupiter', 'Planet', 189800.00, 139820.00, 24.79, 4331.00, 'The largest planet in our solar system.', 'Ancient', '2000-01-01', 1),
+  ('Saturn', 'Planet', 56830.00, 116460.00, 10.44, 10747.00, 'Famous for its prominent ring system.', 'Ancient', '2000-01-01', 1),
+  ('Uranus', 'Planet', 8681.00, 50724.00, 8.87, 30589.00, 'An ice giant with a blue-green color due to methane.', 'William Herschel', '1781-03-13', 1),
+  ('Neptune', 'Planet', 10241.00, 49244.00, 11.15, 59800.00, 'The farthest known planet from the Sun.', 'Urbain Le Verrier', '1846-09-23', 1);
 
-select * from CelestialBodies
+SELECT * FROM CelestialBodies;
+select * from UserNotes
 
 -- Insert dummy data into the UserNotes table
 -- Make sure the BodyIDs (1 and 2) exist from the CelestialBodies insertion
 INSERT INTO UserNotes (UserID, BodyID, NoteText)
 VALUES
-  (1, 1, 'Earth is our beautiful home.'),
-  (2, 2, 'Mars is fascinating.');
+  (1, 4, 'Earth is our beautiful home.'),
+  (2, 5, 'Mars is fascinating.');
 GO
+
+SELECT BodyID, Name FROM CelestialBodies;
 
 select * from UserNotes
 

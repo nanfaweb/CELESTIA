@@ -17,6 +17,11 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        if (!profile.emails || !profile.emails[0]) {
+          console.error("Google profile does not contain an email.");
+          return done(new Error("Google profile does not contain an email"), null);
+        }
+
         const email = profile.emails[0].value;
         const username = profile.displayName || profile.name.givenName;
 
@@ -37,8 +42,11 @@ passport.use(
               INSERT INTO Users (Username, Email, PasswordHash)
               VALUES (@username, @email, @password);
             `);
+
+          console.log("Google user registered.");
         }
 
+        console.log(`Google OAuth successful for user: ${email}`);
         return done(null, profile);
       } catch (err) {
         console.error("Error during Google OAuth:", err);
@@ -62,36 +70,37 @@ router.get(
   async (req, res) => {
     const profile = req.user;
     const email = profile.emails[0].value;
-    const name = profile.displayName || profile.name.givenName || "GoogleUser";
 
     try {
       const poolConn = await pool;
-
       // Check if the user exists in the database
       const checkResult = await poolConn
         .request()
         .input("email", email)
         .query("SELECT * FROM Users WHERE Email = @email");
 
+      let userID;
       if (checkResult.recordset.length === 0) {
         // Register the user if they don't exist
         const dummyPassword = "GOOGLE_AUTH_" + crypto.randomUUID();
-
-        await poolConn
+        const insertResult = await poolConn
           .request()
-          .input("username", name)
+          .input("username", profile.displayName || profile.name.givenName || "GoogleUser")
           .input("email", email)
           .input("password", dummyPassword)
           .query(`
             INSERT INTO Users (Username, Email, PasswordHash)
-            VALUES (@username, @email, @password)
+            VALUES (@username, @email, @password);
+            SELECT SCOPE_IDENTITY() AS UserID;
           `);
-
+        userID = insertResult.recordset[0].UserID;
         console.log("Google user registered.");
+      } else {
+        userID = checkResult.recordset[0].UserID;
       }
 
-      // Redirect to the frontend with the user's email
-      res.redirect(`http://localhost:3000/LandingPage/index.html?email=${encodeURIComponent(email)}`);
+      // Redirect to the frontend with the user's email and userID
+      res.redirect(`http://localhost:3000/LandingPage/index.html?email=${encodeURIComponent(email)}&userID=${userID}`);
     } catch (err) {
       console.error("Error during Google sign-in:", err);
       res.redirect("/login");

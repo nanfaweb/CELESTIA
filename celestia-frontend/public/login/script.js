@@ -34,11 +34,31 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleGoogleSignIn() {
         window.location.href = "http://localhost:3001/api/auth/google";
     }
-    
-    document.getElementById("google-signin-btn").addEventListener("click", () => {
-        window.location.href = "http://localhost:3001/api/auth/google";
-    });
-    
+
+    document.getElementById('google-signin-btn').addEventListener('click', handleGoogleSignIn);
+
+    // Handle Google OAuth callback
+    async function handleGoogleOAuthCallback() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+        const userID = urlParams.get('userID'); // New
+
+        if (email && userID) {
+            // Store the authenticated user's email and userID in sessionStorage
+            sessionStorage.setItem('userEmail', email);
+            sessionStorage.setItem('userID', userID);
+            window.location.href = "/LandingPage/index.html";
+        } else {
+            console.error("Google OAuth callback failed: Missing email or userID.");
+            alert("Google Sign-In failed. Please try again.");
+        }
+    }
+
+    // Check if the current page is the OAuth callback page
+    if (window.location.pathname.includes("google/callback")) {
+        handleGoogleOAuthCallback();
+    }
+
     function handleMouseMove(e) {
         const percX = (e.clientX / window.innerWidth - 0.5) * 2; // -1 to 1
         const percY = (e.clientY / window.innerHeight - 0.5) * 2; // -1 to 1
@@ -117,117 +137,28 @@ document.addEventListener('DOMContentLoaded', () => {
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         clearMessages();
-
         const email = emailInput.value;
         const password = passwordInput.value;
-        let apiUrl = '';
-        let formData = {};
-        let actionText = ''; // For messages
-
-        // Set loading state
-        submitButton.disabled = true;
-        submitButton.classList.add('loading');
-
-        if (currentMode === 'signup') {
-            apiUrl = SIGNUP_API_URL;
-            actionText = 'Registration';
-            const username = usernameInput.value;
-            const confirmPassword = confirmPasswordInput.value;
-
-            if (password !== confirmPassword) {
-                displayMessage('Security Codes do not match!', true);
-                submitButton.disabled = false;
-                submitButton.classList.remove('loading');
-                return;
-            }
-             if (password.length < 8) { // Increased minimum length
-                 displayMessage('Security Code must be at least 8 characters.', true);
-                 submitButton.disabled = false;
-                 submitButton.classList.remove('loading');
-                 return;
-             }
-             if (!username) {
-                 displayMessage('Designation (Username) is required.', true);
-                 submitButton.disabled = false;
-                 submitButton.classList.remove('loading');
-                 return;
-             }
-            formData = { username, email, password };
-
-        } else { // login
-            apiUrl = LOGIN_API_URL;
-            actionText = 'Authentication';
-             if (!email || !password) {
-                  displayMessage('Both Com Frequency and Security Code are required.', true);
-                  submitButton.disabled = false;
-                  submitButton.classList.remove('loading');
-                  return;
-             }
-            // Adjust field name if backend expects 'identifier', 'login', etc.
-            formData = { email: email, password: password };
-        }
-
-
+  
         try {
-            const response = await fetch(apiUrl, {
+            const response = await fetch('/api/users/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(formData),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
             });
-
-            let result;
-            try {
-                 result = await response.json();
-             } catch (jsonError) {
-                 console.error("Failed to parse JSON response:", jsonError);
-                 const textResponse = await response.text();
-                 console.error("Raw response text:", textResponse);
-                 displayMessage(`Unexpected server response during ${actionText}. Status: ${response.status}`, true);
-                 return; // Exit after handling error
-             }
-
-            if (response.ok && result.success) {
-                displayMessage(result.message || `${actionText} successful! Engaging portal...`, false);
-
-                 // Handle token if using token auth
-                 // if (currentMode === 'login' && result.token) {
-                 //    localStorage.setItem('authToken', result.token);
-                 //    console.log("Token received and stored.");
-                 // }
-
-                 localStorage.setItem("userEmail", email);
-
-                 setTimeout(() => {
-                    window.location.href = "/LandingPage/index.html";
-                  }, 1000);
-                
-                //  if (currentMode === 'login') {
-                //     localStorage.setItem("userEmail", email); // Store user email
-                //     setTimeout(() => {
-                //       window.location.href = "/LandingPage/index.html"; // NEW destination
-                //     }, 1500);
-                //   } else {
-                //     console.warn(`${actionText} successful, but no redirect URL provided.`);
-                //     setTimeout(() => {
-                //       document.querySelector('.tab-link[data-tab="login"]').click();
-                //     }, 1500);
-                //   }
+      
+            const result = await response.json();
+            if (result.success) {
+                // Store the authenticated user ID & email in sessionStorage for ephemeral session data
+                sessionStorage.setItem('userID', result.userID);
+                sessionStorage.setItem('userEmail', email);
+                window.location.href = "/LandingPage/index.html";
             } else {
-                // Display specific error from backend if available
-                displayMessage(result.message || `${actionText} failed. Please verify your credentials.`, true);
+                displayMessage(result.message, true);
             }
         } catch (error) {
-            console.error(`${actionText} Network Error:`, error);
-            displayMessage(`A network error occurred during ${actionText}. Please check connection and try again.`, true);
-        } finally {
-             // Remove loading state AFTER potential redirects might be set
-             setTimeout(() => { // Short delay ensures message is seen before button re-enables fully
-                 submitButton.disabled = false;
-                 submitButton.classList.remove('loading');
-             }, 300);
+            displayMessage("Login failed. Please try again.", true);
+            console.error("Error during login:", error);
         }
     });
 
@@ -240,5 +171,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial message clear
     clearMessages();
-
 });
