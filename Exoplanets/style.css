@@ -1,0 +1,197 @@
+/* --- Base & Variables --- */
+:root {
+    --bg-color: #000000;
+    --text-color: #ffffff;
+    --label-color: #999999; /* Lighter grey for labels */
+    --border-color: rgba(255, 255, 255, 0.1);
+    --border-color-hover: rgba(255, 255, 255, 0.3);
+    --placeholder-bg: rgba(255, 255, 255, 0.05); /* Slightly visible */
+    --card-bg: rgba(10, 10, 10, 0.3); /* Very subtle dark bg */
+    --card-bg-hover: rgba(25, 25, 25, 0.5);
+    --error-color: #ffaaaa;
+    --error-bg: rgba(180, 40, 40, 0.2);
+    --error-border: rgba(180, 40, 40, 0.5);
+    --font-main: 'Roboto', sans-serif;
+    --font-title: 'Orbitron', sans-serif;
+}
+
+/* --- Starry Background (Same as previous) --- */
+@keyframes twinkle { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes move-stars { from { background-position: 0 0; } to { background-position: -1000px 1000px; } }
+html { height: 100%; }
+body { height: 100%; overflow: hidden; background-color: var(--bg-color); position: relative; font-family: var(--font-main); color: var(--text-color); line-height: 1.6; }
+.stars { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; background-repeat: repeat; pointer-events: none; z-index: 0; will-change: background-position; }
+.stars1 { background-image: radial-gradient(1px 1px at 20% 30%, #777, transparent), radial-gradient(1px 1px at 80% 70%, #aaa, transparent), radial-gradient(1px 1px at 50% 50%, #666, transparent), radial-gradient(0.5px 0.5px at 35% 85%, #888, transparent); background-size: 500px 500px; animation: move-stars 220s linear infinite, twinkle 11s ease-in-out infinite alternate; opacity: 0.4; }
+.stars2 { background-image: radial-gradient(1.5px 1.5px at 10% 90%, #bbb, transparent), radial-gradient(1px 1px at 40% 10%, #aaa, transparent), radial-gradient(1.5px 1.5px at 75% 40%, #ccc, transparent); background-size: 350px 350px; animation: move-stars 140s linear infinite, twinkle 8s 1s ease-in-out infinite alternate; opacity: 0.6; z-index: 1; }
+.stars3 { background-image: radial-gradient(2px 2px at 25% 55%, #fff, transparent), radial-gradient(2px 2px at 55% 25%, #fff, transparent), radial-gradient(1.5px 1.5px at 90% 80%, #eee, transparent); background-size: 250px 250px; animation: move-stars 80s linear infinite, twinkle 6s 0.5s ease-in-out infinite alternate; opacity: 0.8; z-index: 2; }
+
+
+/* --- Container and Layout --- */
+.container {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    height: 90vh; /* Take full viewport height */
+    padding: 20px 30px 10px 30px; /* Added bottom padding */
+    max-width: 950px; /* Moderate width for readability */
+    margin: 0 auto; /* Center the container */
+}
+
+/* Header Styles (Black/White Theme) */
+.main-header { text-align: center; margin-bottom: 15px; flex-shrink: 0; }
+.main-header h1 { font-family: var(--font-title); font-size: clamp(1.7rem, 3vw, 2rem); color: var(--text-color); margin-bottom: 5px; letter-spacing: 3px; font-weight: 500; text-shadow: 0 0 3px rgba(255,255,255,0.3); }
+.main-header .subtitle { font-size: 0.85rem; color: var(--label-color); font-weight: 300; }
+
+/* Loader & Error (Ensure high contrast) */
+.loader { display: flex; justify-content: center; align-items: center; padding: 30px; color: var(--label-color); font-size: 0.9rem; gap: 10px; }
+.spinner { width: 25px; height: 25px; border: 3px solid rgba(255, 255, 255, 0.3); border-top-color: var(--text-color); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.error-message { background-color: var(--error-bg); color: var(--error-color); border: 1px solid var(--error-border); padding: 10px 15px; margin: 15px 0; border-radius: 4px; text-align: center; font-size: 0.9rem; }
+
+/* Scrollable List Container (Crucial for preventing cutoff) */
+#planet-list-container {
+    flex-grow: 1; /* Take remaining vertical space */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Hide horizontal */
+    padding: 5px; /* Slight padding around the list */
+    margin-bottom: 10px; /* Ensure space below last item */
+
+    /* Custom Scrollbar (Dark Theme) */
+    &::-webkit-scrollbar { width: 8px; }
+    &::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 4px; }
+    &::-webkit-scrollbar-thumb { background-color: var(--label-color); border-radius: 4px; border: 1px solid #000; }
+    &::-webkit-scrollbar-thumb:hover { background-color: var(--text-color); }
+    scrollbar-width: thin;
+    scrollbar-color: var(--label-color) rgba(255, 255, 255, 0.05);
+}
+
+/* Planet List Reset */
+.planet-list { list-style: none; padding: 0; }
+
+/* --- List Item / Card Styling --- */
+.planet-item {
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px; /* Slightly more rounded */
+    background-color: var(--card-bg);
+    backdrop-filter: blur(2px);
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+    position: relative; /* Needed for potential z-index on hover */
+    /* No overflow: hidden here if scale causes issues */
+}
+
+/* Header part of the card */
+.planet-card-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: transform 0.25s ease; /* Apply transition to header */
+    transform-origin: center;
+}
+
+/* Hover Effect (Targeting the Item) */
+.planet-item:hover {
+    background-color: var(--card-bg-hover);
+    border-color: var(--border-color-hover);
+    z-index: 1; /* Bring slightly forward on hover */
+}
+
+/* Apply lift effect to the header on ITEM hover to prevent content shifting/clipping */
+.planet-item:hover .planet-card-header {
+    transform: scale(1.01); /* Subtle scale only on the header part */
+}
+
+
+@keyframes rotate-cw {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes rotate-ccw {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+  }
+  
+  
+  /* Placeholder SVG Container */
+  .placeholder-svg-container { /* Rename the div holding the SVG if needed */
+      flex-shrink: 0;
+      width: 40px; /* Match SVG size */
+      height: 40px;
+      margin-right: 20px;
+      display: flex; /* Center the SVG inside */
+      justify-content: center;
+      align-items: center;
+  }
+
+  .placeholder-svg-container svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible; /* Allows stroke to appear fully */
+}
+
+.placeholder-svg-container .scan-ring {
+    fill: none;
+    stroke-width: 2.5; /* Slightly thicker lines */
+    stroke-linecap: round; /* Rounded ends for dashes */
+    transform-origin: 50% 50%; /* Rotate around the center */
+}
+
+/* Different rings with varied styles and animations */
+.placeholder-svg-container .ring1 {
+    stroke: rgba(255, 255, 255, 0.3); /* Outer, dimmer */
+    stroke-dasharray: 5 15; /* Short dash, long gap */
+    animation: rotate-cw 12s linear infinite; /* Slowest rotation */
+}
+
+.placeholder-svg-container .ring2 {
+    stroke: rgba(255, 255, 255, 0.5); /* Middle */
+    stroke-dasharray: 10 8; /* Longer dash, shorter gap */
+    animation: rotate-ccw 8s linear infinite; /* Medium speed, counter-rotation */
+}
+
+.placeholder-svg-container .ring3 {
+    stroke: rgba(255, 255, 255, 0.8); /* Inner, brighter */
+    stroke-dasharray: 2 4; /* Very short dash, medium gap */
+    animation: rotate-cw 5s linear infinite; /* Fastest rotation */
+}
+
+/* Planet Name (Orbitron Font) */
+.planet-name {
+    font-size: 1.15rem; /* Slightly smaller */
+    font-weight: 500;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-title);
+    flex-grow: 1;
+    letter-spacing: 1px;
+}
+
+/* --- Details Section (Hidden Initially) --- */
+.card-details {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease-out, padding 0.4s ease-out;
+    border-top: none;
+    padding: 0 20px; /* Match header horizontal padding */
+}
+
+.planet-item.expanded .card-details {
+    max-height: 500px; /* Ample space for details */
+    opacity: 1;
+    /* Use padding for separation instead of border */
+    padding: 15px 20px 20px 20px;
+}
+
+.card-details dl { font-size: 0.88rem; }
+.card-details dt { color: var(--label-color); float: left; clear: left; width: 110px; padding-right: 10px; font-weight: 300; line-height: 1.7; }
+.card-details dd { color: var(--text-color); margin-left: 120px; padding-bottom: 5px; font-weight: 400; word-wrap: break-word; line-height: 1.7; }
+/* Style for description if added back */
+.card-details .desc-block dt, .card-details .desc-block dd { float: none; width: auto; margin-left: 0; }
+.card-details .desc-block dt { color: var(--label-color); margin-bottom: 3px;}
+.card-details .desc-block dd { color: var(--text-color); font-size: 0.85rem;}
