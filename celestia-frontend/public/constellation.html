@@ -53,7 +53,7 @@
             left: 50%;
             transform: translateX(-50%);
             font-family: 'Orbitron', sans-serif;
-            font-size: 2rem;
+            font-size: 2.5rem;
             color: #ffffff;
             text-align: center;
             z-index: 10;
@@ -156,14 +156,14 @@
         /* Update Node Styles for better visibility on full screen */
         .node {
             position: absolute;
-            width: 20px;  /* Slightly larger for better visibility */
-            height: 20px;
-            background-color: #FFD700;
+            width: 10px;  /* Slightly larger for better visibility */
+            height: 10px;
+            background-color: #ffffff;
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 15px 3px rgba(255, 220, 0, 0.8),
-                       0 0 30px 8px rgba(255, 165, 0, 0.5);
+            box-shadow: 0 0 10px 3px rgba(179, 78, 252, 0.8),
+                       0 0 20px 6px rgba(99, 38, 143, 0.6);
             z-index: 2;
         }
 
@@ -178,6 +178,16 @@
             transform-origin: left center;
             pointer-events: none;
             z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .edge.highlighted {
+            height: 1px;
+            background: linear-gradient(90deg, 
+                rgba(160, 48, 240, 0.2) 0%,
+                rgba(160, 48, 240, 0.6) 50%,
+                rgba(160, 48, 240, 0.2) 100%);
+            box-shadow: 0 0 10px rgba(160, 48, 240, 0.4);
         }
 
         /* Add Tooltip Styles */
@@ -253,41 +263,121 @@
             }
         });
 
+        // Add this helper function before createConstellation
+function isValidPosition(x, y, existingNodes, minDistance = 20) {
+    return !existingNodes.some(node => {
+        const dx = node.x - x;
+        const dy = node.y - y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < minDistance;
+    });
+}
+
+// Update the node creation section in createConstellation
+const nodes = [];
+users.forEach((user, index) => {
+    const node = document.createElement('div');
+    node.className = 'node';
+    
+    // Adjusted positioning with collision detection
+    const padding = 60;
+    const headerSpace = 120;
+    const maxHeight = window.innerHeight - 200;
+    
+    let x, y;
+    let attempts = 0;
+    const maxAttempts = 100; // Prevent infinite loops
+
+    // Keep trying positions until a valid one is found
+    do {
+        x = padding + Math.random() * (window.innerWidth - 2 * padding);
+        y = headerSpace + Math.random() * (maxHeight - headerSpace);
+        attempts++;
+    } while (!isValidPosition(x, y, nodes) && attempts < maxAttempts);
+
+    // If we couldn't find a valid position after max attempts, adjust the position slightly
+    if (attempts >= maxAttempts) {
+        const offset = 20;
+        x += Math.random() * offset - offset/2;
+        y += Math.random() * offset - offset/2;
+    }
+
+    node.style.left = `${x}px`;
+    node.style.top = `${y}px`;
+
+    // Tooltip events
+    node.addEventListener('mouseenter', (e) => {
+        tooltip.textContent = user.name;
+        tooltip.style.display = 'block';
+        tooltip.style.left = `${e.pageX + 10}px`;
+        tooltip.style.top = `${e.pageY + 10}px`;
+    });
+
+    node.addEventListener('mousemove', (e) => {
+        tooltip.style.left = `${e.pageX + 10}px`;
+        tooltip.style.top = `${e.pageY + 10}px`;
+    });
+
+    node.addEventListener('mouseleave', () => {
+        tooltip.style.display = 'none';
+    });
+
+    constellation.appendChild(node);
+    nodes.push({ element: node, x, y, user });
+});
+
+// Rest of the edge creation code remains the same...
+
         // Constellation creation function
         async function createConstellation() {
             try {
                 let users = [];
                 try {
+                    // Fetch users from database
                     const response = await fetch('http://localhost:3001/api/users');
                     if (!response.ok) throw new Error('Failed to fetch users');
                     users = await response.json();
+                    console.log('Fetched users:', users);
                 } catch (fetchError) {
                     console.warn('Using test data due to fetch error:', fetchError);
                     users = [
                         { name: 'User 1' },
                         { name: 'User 2' },
-                        { name: 'User 3' },
-                        { name: 'User 4' },
-                        { name: 'User 5' }
+                        { name: 'User 3' }
                     ];
                 }
 
                 const constellation = document.getElementById('constellation');
                 const tooltip = document.getElementById('tooltip');
-                const headerHeight = 80; // Reduced from 100
-                // Create nodes for each user
-                const nodes = users.map(user => {
+                const headerHeight = 80;
+
+                // Clear any existing nodes and edges
+                constellation.innerHTML = '';
+
+                // Calculate spacing based on number of users
+                const spacing = {
+                    min: 100, // Minimum distance between nodes
+                    max: Math.min(window.innerWidth, window.innerHeight) * 0.3 // Maximum distance
+                };
+
+                // Update the node positioning section in createConstellation function
+                const nodes = users.map((user, index) => {
                     const node = document.createElement('div');
                     node.className = 'node';
                     
-                    // Position within container bounds, below header
-                    const x = Math.random() * (window.innerWidth * 0.8) + (window.innerWidth * 0.1);
-                    const y = headerHeight + Math.random() * (window.innerHeight - headerHeight - 150); // Added more padding at bottom
+                    // Adjusted positioning with higher start point and tighter bounds
+                    const padding = 60; // Increased padding from edges
+                    const headerSpace = 120; // Increased space from header
+                    const maxHeight = window.innerHeight - 200; // Reduced maximum height
+
+                    // Calculate position with adjusted bounds
+                    const x = padding + Math.random() * (window.innerWidth - 2 * padding);
+                    const y = headerSpace + Math.random() * (maxHeight - headerSpace);
                     
                     node.style.left = `${x}px`;
                     node.style.top = `${y}px`;
 
-                    // Tooltip events
+                    // Tooltip events remain the same
                     node.addEventListener('mouseenter', (e) => {
                         tooltip.textContent = user.name;
                         tooltip.style.display = 'block';
@@ -305,31 +395,40 @@
                     });
 
                     constellation.appendChild(node);
-                    return { element: node, x, y };
+                    return { element: node, x, y, user };
                 });
 
-                // Create edges between nodes
+                // Update the edge creation logic
                 nodes.forEach((node, i) => {
-                    // Connect to 2-3 nearest nodes
-                    const connections = Math.floor(Math.random() * 2) + 2;
+                    // Define distance constraints
+                    const minDistance = 100; // Minimum edge length in pixels
+                    const maxDistance = window.innerWidth * 0.25; // Reduced max distance to 25% of screen width
+                    const numConnections = Math.floor(Math.random() * 2) + 2; // 2-3 connections
                     const otherNodes = [...nodes];
                     otherNodes.splice(i, 1);
-
-                    // Sort other nodes by distance
-                    otherNodes.sort((a, b) => {
+                    
+                    // Filter and sort nodes by distance
+                    const validNodes = otherNodes.filter(otherNode => {
+                        const distance = Math.hypot(otherNode.x - node.x, otherNode.y - node.y);
+                        return distance >= minDistance && distance <= maxDistance;
+                    }).sort((a, b) => {
                         const distA = Math.hypot(a.x - node.x, a.y - node.y);
                         const distB = Math.hypot(b.x - node.x, b.y - node.y);
                         return distA - distB;
                     });
 
-                    // Create edges to nearest nodes
-                    for (let j = 0; j < connections && j < otherNodes.length; j++) {
+                    // Create edges only for valid distances
+                    for (let j = 0; j < Math.min(numConnections, validNodes.length); j++) {
+                        const targetNode = validNodes[j];
+                        const distance = Math.hypot(targetNode.x - node.x, targetNode.y - node.y);
+                        
                         const edge = document.createElement('div');
+                        const edgeId = `edge-${i}-${j}`;
+                        edge.id = edgeId;
                         edge.className = 'edge';
 
-                        const dx = otherNodes[j].x - node.x;
-                        const dy = otherNodes[j].y - node.y;
-                        const distance = Math.hypot(dx, dy);
+                        const dx = targetNode.x - node.x;
+                        const dy = targetNode.y - node.y;
                         const angle = Math.atan2(dy, dx);
 
                         edge.style.width = `${distance}px`;

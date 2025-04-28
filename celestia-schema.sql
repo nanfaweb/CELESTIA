@@ -331,6 +331,10 @@ VALUES
   ('Zuhair', 'zuhair@example.com', 'dummyhash3');
 GO
 
+INSERT INTO Users (Username, Email, PasswordHash)
+VALUES ('Ihtesham', 'abnoc@gmail.com', 'abnoc@123')
+GO
+
 select * from users
 
 -- Insert dummy data into the UserProfiles table
