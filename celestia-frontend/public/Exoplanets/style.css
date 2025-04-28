@@ -3,11 +3,11 @@
     --bg-color: #000000;
     --text-color: #ffffff;
     --label-color: #999999; /* Lighter grey for labels */
-    --border-color: rgba(255, 255, 255, 0.1);
-    --border-color-hover: rgba(255, 255, 255, 0.3);
+    --border-color: rgba(160, 48, 240, 0.2); /* Light purple border */
+    --border-color-hover: rgba(160, 48, 240, 0.5); /* Brighter purple on hover */
     --placeholder-bg: rgba(255, 255, 255, 0.05); /* Slightly visible */
-    --card-bg: rgba(10, 10, 10, 0.3); /* Very subtle dark bg */
-    --card-bg-hover: rgba(25, 25, 25, 0.5);
+    --card-bg: rgba(50, 10, 80, 0.2); /* Very subtle purple tint */
+    --card-bg-hover: rgba(80, 20, 120, 0.3); /* Slightly more purple on hover */
     --error-color: #ffaaaa;
     --error-bg: rgba(180, 40, 40, 0.2);
     --error-border: rgba(180, 40, 40, 0.5);
@@ -40,8 +40,44 @@ body { height: 100%; overflow: hidden; background-color: var(--bg-color); positi
 
 /* Header Styles (Black/White Theme) */
 .main-header { text-align: center; margin-bottom: 15px; flex-shrink: 0; }
-.main-header h1 { font-family: var(--font-title); font-size: clamp(1.7rem, 3vw, 2rem); color: var(--text-color); margin-bottom: 5px; letter-spacing: 3px; font-weight: 500; text-shadow: 0 0 3px rgba(255,255,255,0.3); }
-.main-header .subtitle { font-size: 0.85rem; color: var(--label-color); font-weight: 300; }
+.main-header h1 { 
+    font-family: var(--font-title); 
+    font-size: clamp(1.7rem, 3vw, 2rem); 
+    color: var(--text-color); 
+    margin-bottom: 5px; 
+    letter-spacing: 3px; 
+    font-weight: 500; 
+    text-shadow: 0 0 10px rgba(160, 48, 240, 0.7),
+                 0 0 20px rgba(160, 48, 240, 0.7),
+                 0 0 30px rgba(160, 48, 240, 0.5);
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+h3 {
+    font-family: var(--font-title);
+    font-size: 1 rem;
+    color: var(--text-color);
+    margin-bottom: 10px;
+    text-align: center;
+    letter-spacing: 2px;
+    font-weight: 100;
+    text-shadow: 0 0 5px rgba(160, 48, 240, 0.5),
+                 0 0 10px rgba(160, 48, 240, 0.5),
+                 0 0 15px rgba(160, 48, 240, 0.3);
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px rgba(160, 48, 240, 0.7),
+                     0 0 20px rgba(160, 48, 240, 0.7),
+                     0 0 30px rgba(160, 48, 240, 0.5);
+    }
+    to {
+        text-shadow: 0 0 20px rgba(160, 48, 240, 0.9),
+                     0 0 30px rgba(160, 48, 240, 0.9),
+                     0 0 40px rgba(160, 48, 240, 0.7);
+    }
+}
 
 /* Loader & Error (Ensure high contrast) */
 .loader { display: flex; justify-content: center; align-items: center; padding: 30px; color: var(--label-color); font-size: 0.9rem; gap: 10px; }
@@ -76,7 +112,8 @@ body { height: 100%; overflow: hidden; background-color: var(--bg-color); positi
     border-radius: 8px; /* Slightly more rounded */
     background-color: var(--card-bg);
     backdrop-filter: blur(2px);
-    transition: background-color 0.25s ease, border-color 0.25s ease;
+    box-shadow: 0 0 15px rgba(160, 48, 240, 0.1); /* Subtle purple glow */
+    transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     position: relative; /* Needed for potential z-index on hover */
     /* No overflow: hidden here if scale causes issues */
 }
@@ -95,6 +132,7 @@ body { height: 100%; overflow: hidden; background-color: var(--bg-color); positi
 .planet-item:hover {
     background-color: var(--card-bg-hover);
     border-color: var(--border-color-hover);
+    box-shadow: 0 0 20px rgba(160, 48, 240, 0.2); /* Enhanced purple glow on hover */
     z-index: 1; /* Bring slightly forward on hover */
 }
 
