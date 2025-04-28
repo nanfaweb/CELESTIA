@@ -42,6 +42,22 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Retrieve exoplanets
+router.get("/exoplanets", async (req, res) => {
+  try {
+    console.log("Fetching exoplanets...");
+    const result = await (await pool).request().query(`
+      SELECT * FROM CelestialBodies
+      WHERE LOWER(Name) NOT IN ('sun', 'mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune')
+    `);
+    console.log("Exoplanets fetched:", result.recordset);
+    res.json({ success: true, data: result.recordset });
+  } catch (error) {
+    console.error("READ exoplanets error:", error); // Log the error
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // READ a single celestial body by BodyID
 router.get("/:id", async (req, res) => {
   try {

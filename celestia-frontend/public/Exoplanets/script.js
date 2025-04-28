@@ -5,24 +5,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // !! IMPORTANT !! Define your API endpoints
     const API_COUNT_URL = '/api/celestial-bodies/count'; // Endpoint for getting total count
-    const API_DETAILS_URL = '/api/celestial-bodies';     // Endpoint for getting ALL bodies
+    const API_DETAILS_URL = '/api/celestial-bodies/exoplanets';     // Endpoint for getting ALL bodies
 
     // Names to exclude (Our Solar System - Case Insensitive Check Recommended)
     const solarSystemExclusions = new Set([
-        "sun", "mercury", "venus", "earth", "mars",
-        "jupiter", "saturn", "uranus", "neptune",
+        "Sun", "Mercury", "Venus", "Earth", "Mars",
+        "Jupiter", "Saturn", "Uranus", "Neptune",
          // Add more if needed
     ]);
 
-    // --- Placeholder Data (Exoplanets) --- //
-    const placeholderData = [
-        { BodyID: 1, Name: "Kepler-186f", Type: "Planet", Mass: 1.4 * 5.972e+24, Diameter: 1.17 * 12742, Gravity: 11.0, OrbitalPeriod: 130, Description: "First Earth-sized planet discovered in the habitable zone of another star.", DiscoveredBy: "Kepler Space Telescope", DiscoveryDate: "2014-04-17" },
-        { BodyID: 2, Name: "Gliese 581g", Type: "Planet", Mass: 3.1 * 5.972e+24, Diameter: 1.4 * 12742, Gravity: 15.0, OrbitalPeriod: 37, Description: "Potentially habitable exoplanet, existence debated.", DiscoveredBy: "W. M. Keck Observatory", DiscoveryDate: "2010-09-29" },
-        { BodyID: 3, Name: "TRAPPIST-1e", Type: "Planet", Mass: 0.62 * 5.972e+24, Diameter: 0.91 * 12742, Gravity: 7.4, OrbitalPeriod: 6.1, Description: "Earth-sized exoplanet in the habitable zone of an ultra-cool dwarf star.", DiscoveredBy: "TRAPPIST", DiscoveryDate: "2017-02-22"},
-        { BodyID: 4, Name: "Proxima Centauri b", Type: "Planet", Mass: 1.27 * 5.972e+24, Diameter: null, Gravity: null, OrbitalPeriod: 11.2, Description: "Closest known exoplanet to Earth, orbiting Proxima Centauri.", DiscoveredBy: "ESO (La Silla)", DiscoveryDate: "2016-08-24"},
-        { BodyID: 5, Name: "HD 209458 b (Osiris)", Type: "Planet", Mass: 0.69 * 1.898e+27, Diameter: 1.38 * 139820, Gravity: 9.4 , OrbitalPeriod: 3.5, Description: "Hot Jupiter known for atmospheric studies.", DiscoveredBy: "Multiple Teams", DiscoveryDate: "1999-11-05"},
-        { BodyID: 6, Name: "OGLE-2005-BLG-390Lb", Type: "Planet", Mass: 5.5 * 5.972e+24, Diameter: null, Gravity: null, OrbitalPeriod: 3500, Description: "One of the most distant and coldest exoplanets found via microlensing.", DiscoveredBy: "OGLE, PLANET Collab.", DiscoveryDate: "2006-01-25"}
-    ];
+    // // --- Placeholder Data (Exoplanets) --- //
+    // const placeholderData = [
+    //     { BodyID: 1, Name: "Kepler-186f", Type: "Planet", Mass: 1.4 * 5.972e+24, Diameter: 1.17 * 12742, Gravity: 11.0, OrbitalPeriod: 130, Description: "First Earth-sized planet discovered in the habitable zone of another star.", DiscoveredBy: "Kepler Space Telescope", DiscoveryDate: "2014-04-17" },
+    //     { BodyID: 2, Name: "Gliese 581g", Type: "Planet", Mass: 3.1 * 5.972e+24, Diameter: 1.4 * 12742, Gravity: 15.0, OrbitalPeriod: 37, Description: "Potentially habitable exoplanet, existence debated.", DiscoveredBy: "W. M. Keck Observatory", DiscoveryDate: "2010-09-29" },
+    //     { BodyID: 3, Name: "TRAPPIST-1e", Type: "Planet", Mass: 0.62 * 5.972e+24, Diameter: 0.91 * 12742, Gravity: 7.4, OrbitalPeriod: 6.1, Description: "Earth-sized exoplanet in the habitable zone of an ultra-cool dwarf star.", DiscoveredBy: "TRAPPIST", DiscoveryDate: "2017-02-22"},
+    //     { BodyID: 4, Name: "Proxima Centauri b", Type: "Planet", Mass: 1.27 * 5.972e+24, Diameter: null, Gravity: null, OrbitalPeriod: 11.2, Description: "Closest known exoplanet to Earth, orbiting Proxima Centauri.", DiscoveredBy: "ESO (La Silla)", DiscoveryDate: "2016-08-24"},
+    //     { BodyID: 5, Name: "HD 209458 b (Osiris)", Type: "Planet", Mass: 0.69 * 1.898e+27, Diameter: 1.38 * 139820, Gravity: 9.4 , OrbitalPeriod: 3.5, Description: "Hot Jupiter known for atmospheric studies.", DiscoveredBy: "Multiple Teams", DiscoveryDate: "1999-11-05"},
+    //     { BodyID: 6, Name: "OGLE-2005-BLG-390Lb", Type: "Planet", Mass: 5.5 * 5.972e+24, Diameter: null, Gravity: null, OrbitalPeriod: 3500, Description: "One of the most distant and coldest exoplanets found via microlensing.", DiscoveredBy: "OGLE, PLANET Collab.", DiscoveryDate: "2006-01-25"}
+    // ];
 
 
     // Helper functions (formatNumber, formatDate) 
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card-details" id="details-${planet.BodyID}">
                      <dl>
                          <div><dt>Type:</dt><dd>${planet.Type || 'N/A'}</dd></div>
-                         <div><dt>Mass (kg):</dt><dd>${formatNumber(planet.Mass)}</dd></div>
+                         <div><dt>Mass (solar masses):</dt><dd>${formatNumber(planet.Mass)}</dd></div>
                          <div><dt>Diameter (km):</dt><dd>${formatNumber(planet.Diameter, { maximumFractionDigits: 0 })}</dd></div>
                          <div><dt>Gravity (m/s²):</dt><dd>${formatNumber(planet.Gravity)}</dd></div>
                          <div><dt>Orbit (days):</dt><dd>${formatNumber(planet.OrbitalPeriod)}</dd></div>
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         errorMessage.textContent = `Data Error (${context}): ${message}`;
         errorMessage.style.display = 'block';
         console.warn(`${context}: Displaying placeholder planet data.`);
-        displayPlanets(placeholderData); // Fallback to placeholder
+        // displayPlanets(placeholderData); // Fallback to placeholder
     }
 
     // MAIN DATA FETCHING LOGIC
@@ -117,35 +117,22 @@ document.addEventListener('DOMContentLoaded', () => {
         loader.style.display = 'flex';
         errorMessage.style.display = 'none';
         planetListContainer.innerHTML = '';
-        let totalCount = 0;
-
+    
         try {
-            const countResponse = await fetch(API_COUNT_URL);
-            if (!countResponse.ok) throw new Error(`Count API Error: ${countResponse.status}`);
-            const countData = await countResponse.json();
-            totalCount = parseInt(countData.count, 10);
-             if (isNaN(totalCount)) throw new Error("Invalid count format.");
-            console.log(`Total bodies reported by backend: ${totalCount}`);
-             if (totalCount <= 9 && totalCount !== 0) {
-                 console.log("Count suggests <= 9 bodies total.");
-             } else if (totalCount === 0) {
-                 errorMessage.textContent = "Catalog is empty according to count.";
-                 errorMessage.style.display = 'block';
-                 loader.style.display = 'none';
-                 return;
-             }
-        } catch (error) { console.error("Failed to fetch count:", error); displayError(error.message, "Count Fetch Failed"); }
-
-        try {
+            // Fetch exoplanet details from the backend
             const detailsResponse = await fetch(API_DETAILS_URL);
             if (!detailsResponse.ok) throw new Error(`Details API Error: ${detailsResponse.status}`);
-            const allBodies = await detailsResponse.json();
-            if (!Array.isArray(allBodies)) throw new Error('Details API returned invalid format.');
-            const filteredBodies = allBodies.filter(body => !solarSystemExclusions.has((body.Name || '').toLowerCase()));
-            console.log(`Fetched ${allBodies.length} bodies, filtered to ${filteredBodies.length} exobodies.`);
-            displayPlanets(filteredBodies);
-        } catch (error) { console.error("Failed to fetch/process details:", error); displayError(error.message, "Details Fetch Failed"); }
-        finally { loader.style.display = 'none'; }
+            const { data: exoplanets } = await detailsResponse.json(); // Assuming backend returns { success, data }
+            if (!Array.isArray(exoplanets)) throw new Error('Details API returned invalid format.');
+    
+            console.log(`Fetched ${exoplanets.length} exoplanets.`);
+            displayPlanets(exoplanets); // Dynamically display exoplanets
+        } catch (error) {
+            console.error("Failed to fetch/process details:", error);
+            displayError(error.message, "Details Fetch Failed");
+        } finally {
+            loader.style.display = 'none';
+        }
     }
 
     // --- Initial Load ---

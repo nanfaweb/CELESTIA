@@ -227,8 +227,24 @@ h3 {
 }
 
 .card-details dl { font-size: 0.88rem; }
-.card-details dt { color: var(--label-color); float: left; clear: left; width: 110px; padding-right: 10px; font-weight: 300; line-height: 1.7; }
-.card-details dd { color: var(--text-color); margin-left: 120px; padding-bottom: 5px; font-weight: 400; word-wrap: break-word; line-height: 1.7; }
+.card-details dt {
+    color: var(--label-color);
+    float: left;
+    clear: left;
+    width: 170px;
+    padding-right: 10px;
+    font-weight: 300;
+    line-height: 1.7;
+}
+
+.card-details dd {
+    color: var(--text-color);
+    margin-left: 100px;
+    padding-bottom: 5px;
+    font-weight: 400;
+    word-wrap: break-word;
+    line-height: 1.7;
+}
 /* Style for description if added back */
 .card-details .desc-block dt, .card-details .desc-block dd { float: none; width: auto; margin-left: 0; }
 .card-details .desc-block dt { color: var(--label-color); margin-bottom: 3px;}
