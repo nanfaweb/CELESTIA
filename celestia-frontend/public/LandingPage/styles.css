@@ -185,6 +185,42 @@ button { cursor: none; }
     /* REMOVED textDistortion animation */
 }
 
+.constellation-link {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: #fff;
+  letter-spacing: 2px;
+  padding: 12px 24px;
+  background: rgba(160, 48, 240, 0.1);
+  border: 1px solid rgba(160, 48, 240, 0.3);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  z-index: 100;
+  text-decoration: none;
+  pointer-events: auto !important;
+  backdrop-filter: blur(8px);
+}
+
+.constellation-link:hover {
+  background: rgba(160, 48, 240, 0.2);
+  border-color: rgba(160, 48, 240, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(160, 48, 240, 0.4);
+  color: #fff; /* Ensure text stays white on hover */
+}
+
+.constellation-link:active {
+  transform: translateY(0);
+}
+
+.link-text {
+  position: relative;
+  z-index: 1;
+}
+
 .blackhole {
     z-index: -1;
     display: flex;

@@ -34,6 +34,10 @@
 
     <!-- Main content -->
     <div class="container">
+        <!-- Add after <div class="container"> -->
+        <a href="#" onclick="redirectWithLoader('../constellation.html')" class="constellation-link">
+            <span class="link-text">VIEW CONSTELLATION</span>
+        </a>
         <div class="logo">CELESTIA</div>
 
         <div class="loader" id="blackhole-loader">
@@ -85,7 +89,7 @@
                         </div>
                         <div class="option-particles"></div>
                     </a>
-                    <a href="exoplanets.html" class="option" id="exoplanet-option" data-tooltip="Chart courses to distant stars">
+                    <a href="#" onclick="redirectWithLoader('/Exoplanets/index.html')" class="option" id="exoplanet-option" data-tooltip="Chart courses to distant stars">
                         <div class="option-glow"></div>
                         <div class="option-icon exoplanet-icon"></div>
                         <div class="option-text">

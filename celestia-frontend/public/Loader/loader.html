@@ -204,51 +204,6 @@
     </div>
   </div>
 
-  <!-- Removed the secondary loading indicator -->
-
-  <!-- <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const mainElement = document.getElementById('saturn-main');
-      const initialDelay = 150; // ms - How long to wait before starting animation
-      const redirectDelay = 2000; // ms - Time before redirect
-  
-      console.log("🚀 Loader: DOMContentLoaded triggered.");
-  
-      // Create star field
-      const starField = document.getElementById('star-field');
-      for (let i = 0; i < 100; i++) {
-        const star = document.createElement('div');
-        star.classList.add('star');
-        star.style.top = `${Math.random() * 100}%`;
-        star.style.left = `${Math.random() * 100}%`;
-        star.style.width = `${Math.random() * 2 + 1}px`;
-        star.style.height = star.style.width;
-        starField.appendChild(star);
-      }
-  
-      // Trigger Saturn animation after slight delay
-      setTimeout(() => {
-        if (mainElement) {
-          mainElement.classList.add('loading-active');
-          console.log("🪐 Loader: Saturn animation started.");
-        }
-      }, initialDelay);
-  
-      // Redirect after full animation
-      setTimeout(() => {
-        const destination = localStorage.getItem('destinationAfterLoad');
-        console.log("🧭 Loader: Redirecting to", destination || "/");
-  
-        if (destination) {
-          localStorage.removeItem('destinationAfterLoad');
-          window.location.href = destination;
-        } else {
-          window.location.href = "/";
-        }
-      }, redirectDelay);
-    });
-  </script>   -->
-
    <script>
       document.addEventListener('DOMContentLoaded', () => {
           const initialDelay = 150; // ms - How long to wait before starting animation

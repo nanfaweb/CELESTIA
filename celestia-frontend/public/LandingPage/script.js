@@ -1,6 +1,20 @@
 function redirectWithLoader(targetUrl) {
-    sessionStorage.setItem("destinationAfterLoad", targetUrl); // Store the target URL in session storage
-    window.location.href = "../Loader/loader.html"; // Redirect to the loader page
+    // Store both the target URL and its type
+    sessionStorage.setItem("destinationAfterLoad", targetUrl);
+    
+    // Determine the correct loader path based on current location
+    const currentPath = window.location.pathname;
+    let loaderPath;
+    
+    if (currentPath.includes('/LandingPage/')) {
+        // If we're in LandingPage, go up one level to public
+        loaderPath = '../Loader/loader.html';
+    } else {
+        // Default path from root
+        loaderPath = '/Loader/loader.html';
+    }
+    
+    window.location.href = loaderPath;
 }
 
 // Wrap everything in an IIFE
