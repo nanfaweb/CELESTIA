@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Constellation Weaver</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #night-sky {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1; /* Ensure SVG is below button */
+    }
+
+    .controls { /* Container for button and loading text */
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 10;
+    }
+
+    #loading-text {
+        color: #a0a0a0;
+        font-size: 0.9em;
+        margin-bottom: 0.5rem;
+        height: 1.2em; /* Reserve space */
+        visibility: hidden; /* Hide initially */
+    }
+
+    .button {
+      padding: 0.75rem 1.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .button:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+
+    .button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+  </style>
+</head>
+<body>
+  <svg id="night-sky"></svg>
+  <div class="controls">
+      <div id="loading-text"></div>
+      <button id="action-button" class="button" onclick="initiateConstellationFormation()">Weave Constellations</button>
+  </div>
+
+  <script>
+    const svg = document.getElementById('night-sky');
+    const button = document.getElementById('action-button');
+    const loadingText = document.getElementById('loading-text');
+    const MIN_STARS_PER_CONSTELLATION = 4;
+    const CONSTELLATION_SPREAD_RADIUS = 150; // How spread out stars are within a constellation
+    const CONSTELLATION_PADDING = 100; // Minimum distance between constellation centers and edge/center
+    const ANIMATION_LINE_SPEED = 0.04; // Controls how fast lines draw (0.01 to 0.1 is reasonable)
+
+    let isAnimating = false;
+    let stars = []; // Holds all star objects { x, y, size, element, isUserStar, constellationId, line? }
+    let constellations = []; // Holds info about each constellation { id, centerX, centerY, stars: [starObj] }
+    let backgroundStars = []; // Separate array for background stars
+    let userStarElement = null;
+    let windowWidth = window.innerWidth;
+    let windowHeight = window.innerHeight;
+    let centerX = windowWidth / 2;
+    let centerY = windowHeight / 2;
+
+    // --- Initialization ---
+    window.onload = () => {
+        setupScene();
+    };
+
+    window.onresize = () => {
+        // Debounce resize event for performance
+        clearTimeout(window.resizeTimeout);
+        window.resizeTimeout = setTimeout(() => {
+             console.log("Resizing...");
+             windowWidth = window.innerWidth;
+             windowHeight = window.innerHeight;
+             centerX = windowWidth / 2;
+             centerY = windowHeight / 2;
+             // Clear and redraw everything on resize
+             resetScene();
+             setupScene();
+             isAnimating = false; // Stop any animation
+             button.disabled = false;
+             loadingText.style.visibility = 'hidden';
+        }, 250);
+    };
+
+    function setupScene() {
+        svg.setAttribute('width', windowWidth);
+        svg.setAttribute('height', windowHeight);
+
+        // Clear previous elements if any (important for resize)
+        svg.innerHTML = '';
+
+        // Create Center Star (The User)
+        userStarElement = createStar(centerX, centerY, 4, '#FFE135', false, null, 'user-star'); // Yellow center star
+        svg.appendChild(userStarElement);
+
+        // Generate initial background stars
+        backgroundStars = [];
+        for (let i = 0; i < 200; i++) {
+            const x = Math.random() * windowWidth;
+            const y = Math.random() * windowHeight;
+            const size = Math.random() * 1.5 + 0.5;
+            const star = { x, y, size, isUserStar: false, constellationId: null };
+            star.element = createStar(x, y, size, '#6b7280', false); // Dim background star
+            backgroundStars.push(star);
+            svg.appendChild(star.element);
+        }
+        stars = [...backgroundStars]; // Combine all stars initially
+        console.log("Scene setup complete.");
+    }
+
+    function resetScene() {
+         stars = [];
+         constellations = [];
+         backgroundStars = [];
+         userStarElement = null;
+         svg.innerHTML = ''; // Clear SVG content
+    }
+
+    function createStar(cx, cy, r, fill, isUserStar, constellationId = null, id = null) {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', cx);
+      circle.setAttribute('cy', cy);
+      circle.setAttribute('r', r);
+      circle.setAttribute('fill', fill);
+      circle.style.transition = 'opacity 0.5s, fill 0.5s';
+      if (id) {
+        circle.id = id;
+      }
+      return circle;
+    }
+
+     function createLine(startX, startY) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', startX);
+        line.setAttribute('y1', startY);
+        line.setAttribute('x2', startX); // Initially end where it starts
+        line.setAttribute('y2', startY);
+        line.setAttribute('stroke', '#FFE135'); // Line color matching bright stars
+        line.setAttribute('stroke-width', '1');
+        line.setAttribute('stroke-linecap', 'round');
+        line.setAttribute('opacity', '0'); // Start invisible
+        line.style.transition = 'opacity 0.3s';
+        svg.appendChild(line);
+        return line;
+     }
+
+    // --- Simulation and Logic ---
+
+    // Simulate fetching data from the backend
+    async function fetchUserCountFromBackend() {
+        // **REPLACE THIS:** In a real app, fetch from your API
+        // e.g., const response = await fetch('/api/user-count');
+        //      const data = await response.json();
+        //      return data.count;
+        console.log("Simulating backend call for user count...");
+        return new Promise(resolve => {
+            setTimeout(() => {
+                const count = Math.floor(Math.random() * 30) + 5; // Random count between 5 and 34
+                console.log("Simulated count received:", count);
+                resolve(count);
+            }, 800); // Simulate network delay
+        });
+    }
+
+    async function generateConstellations() {
+        setLoadingState(true, "Fetching user data...");
+        const totalUserCount = await fetchUserCountFromBackend();
+        const numOtherUsers = totalUserCount - 1;
+
+        if (numOtherUsers < MIN_STARS_PER_CONSTELLATION) {
+            setLoadingState(false, `Need at least ${MIN_STARS_PER_CONSTELLATION} other users for a constellation. Found: ${numOtherUsers}`);
+            console.warn("Not enough users for a constellation.");
+            // Clear existing user stars/constellations if any
+            stars = stars.filter(s => !s.isUserStar); // Keep only background
+            const userStarsElements = svg.querySelectorAll('circle:not([id="user-star"]):not([fill="#6b7280"])'); // Quick way to find user stars (not robust)
+            userStarsElements.forEach(el => el.remove());
+            const lineElements = svg.querySelectorAll('line');
+            lineElements.forEach(el => el.remove());
+            constellations = [];
+            return false; // Indicate failure
+        }
+
+        setLoadingState(true, "Generating constellation coordinates...");
+
+        // Clear previous user stars & constellations (but keep background stars)
+        stars = stars.filter(s => !s.isUserStar);
+        const userStarsElements = svg.querySelectorAll('circle:not([id="user-star"]):not([fill="#6b7280"])'); // Target previous bright stars
+        userStarsElements.forEach(el => el.remove());
+        const lineElements = svg.querySelectorAll('line');
+        lineElements.forEach(el => el.remove());
+        constellations = [];
+
+        let starsToPlace = numOtherUsers;
+        let constellationIdCounter = 0;
+
+        while (starsToPlace >= MIN_STARS_PER_CONSTELLATION) {
+            constellationIdCounter++;
+            const constellation = {
+                id: constellationIdCounter,
+                centerX: 0,
+                centerY: 0,
+                stars: []
+            };
+
+            // Generate a safe random center for the constellation
+            let validCenter = false;
+            while(!validCenter) {
+                constellation.centerX = Math.random() * (windowWidth - 2 * CONSTELLATION_PADDING) + CONSTELLATION_PADDING;
+                constellation.centerY = Math.random() * (windowHeight - 2 * CONSTELLATION_PADDING) + CONSTELLATION_PADDING;
+                // Basic check to avoid being too close to the user's center star
+                if (Math.hypot(constellation.centerX - centerX, constellation.centerY - centerY) > CONSTELLATION_PADDING * 1.5) {
+                     validCenter = true;
+                }
+                // Could add checks against other constellation centers here if needed
+            }
+
+
+            // Decide how many stars for this constellation (could be more complex)
+            const numStarsThisConst = MIN_STARS_PER_CONSTELLATION + (constellationIdCounter === 1 ? starsToPlace % MIN_STARS_PER_CONSTELLATION : 0); // Add remainder to the first one maybe
+            // OR simple fixed size: const numStarsThisConst = MIN_STARS_PER_CONSTELLATION;
+
+            for (let i = 0; i < numStarsThisConst && starsToPlace > 0; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const radiusOffset = Math.random() * CONSTELLATION_SPREAD_RADIUS;
+                const x = constellation.centerX + Math.cos(angle) * radiusOffset;
+                const y = constellation.centerY + Math.sin(angle) * radiusOffset;
+                const size = 2.5; // User stars are slightly smaller than center
+
+                const starObj = { x, y, size, isUserStar: true, constellationId: constellation.id };
+                starObj.element = createStar(x, y, size, '#6b7280', true); // Start dim
+                starObj.line = createLine(x, y); // Line associated with the star it *points to*
+                stars.push(starObj);
+                constellation.stars.push(starObj);
+                svg.appendChild(starObj.element); // Add star to SVG
+                 // Don't add line to SVG until it's animated
+            }
+            constellations.push(constellation);
+            starsToPlace -= numStarsThisConst;
+        }
+         console.log(`Generated ${constellations.length} constellations.`);
+         setLoadingState(false, ""); // Clear loading text
+         return true; // Indicate success
+    }
+
+
+    // --- Animation Functions ---
+
+    function startWaveAnimation() {
+      console.log("Starting wave animation...");
+      // Reset all user stars to dim before wave
+      stars.forEach(star => {
+         if(star.isUserStar) {
+             star.element.setAttribute('fill', '#6b7280');
+             if (star.line) star.line.setAttribute('opacity', '0');
+         }
+      });
+
+      const wave = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      wave.setAttribute('cx', centerX);
+      wave.setAttribute('cy', centerY);
+      wave.setAttribute('r', '0');
+      wave.setAttribute('fill', 'none');
+      wave.setAttribute('stroke', 'white');
+      wave.setAttribute('stroke-width', '1');
+      wave.setAttribute('opacity', '0.5'); // Slightly more visible wave
+      svg.appendChild(wave);
+
+      let radius = 0;
+      const maxRadius = Math.max(windowWidth, windowHeight); // Wave should cover screen
+
+      const waveAnimation = setInterval(() => {
+        radius += 5; // Wave speed
+        wave.setAttribute('r', radius);
+        wave.setAttribute('opacity', 0.5 * (1 - radius / maxRadius)); // Fade wave out as it expands
+
+        // Check stars against wave
+        stars.forEach(star => {
+          const distFromCenter = Math.hypot(star.x - centerX, star.y - centerY);
+          if (star.isUserStar) {
+            // Light up user stars when wave hits them
+            if (distFromCenter < radius && star.element.getAttribute('fill') !== '#FFE135') {
+               star.element.setAttribute('fill', '#FFE135');
+            }
+          } else {
+            // Fade background stars slightly
+            star.element.style.opacity = distFromCenter < radius ? '0.4' : '1';
+          }
+        });
+
+        if (radius >= maxRadius + 50) { // Go a bit beyond edge
+          clearInterval(waveAnimation);
+          svg.removeChild(wave);
+          resetBackgroundStarBrightness();
+          animateConstellations(); // Start drawing lines within constellations
+        }
+      }, 16); // approx 60fps
+    }
+
+    function resetBackgroundStarBrightness() {
+      backgroundStars.forEach(star => {
+        star.element.style.opacity = '1';
+      });
+       console.log("Background star brightness reset.");
+    }
+
+    function animateConstellations() {
+        console.log(`Animating ${constellations.length} constellations...`);
+        constellations.forEach(constellation => {
+            // For each constellation, find a path and draw lines
+            if (constellation.stars.length > 0) {
+                 connectStarsInConstellation(constellation.stars);
+            }
+        });
+        // Note: Constellations animate in parallel here
+         // Re-enable button after a delay (allow line animation to roughly finish)
+         setTimeout(() => {
+              isAnimating = false;
+              button.disabled = false;
+               console.log("Animation complete. Button enabled.");
+         }, constellations.length > 0 ? (constellations[0].stars.length / ANIMATION_LINE_SPEED / 60)*1000 + 1000 : 100); // Estimate finish time
+    }
+
+    function connectStarsInConstellation(constellationStars) {
+        if (!constellationStars || constellationStars.length < 2) {
+             console.log("Skipping line drawing for constellation with < 2 stars.");
+             return; // Need at least two points for a line
+        }
+
+        let pathStars = [...constellationStars]; // Copy stars to track remaining ones
+        let currentStar = pathStars.shift(); // Start with the first star in the constellation array
+
+        function drawNextLine() {
+             if (pathStars.length === 0) return; // All stars connected
+
+             // Find the star in remaining list closest to the current star
+             let closestStar = null;
+             let minDistSq = Infinity;
+             let closestIndex = -1;
+
+             pathStars.forEach((star, index) => {
+                 const distSq = (star.x - currentStar.x)**2 + (star.y - currentStar.y)**2;
+                 if (distSq < minDistSq) {
+                     minDistSq = distSq;
+                     closestStar = star;
+                     closestIndex = index;
+                 }
+             });
+
+             // Remove the chosen star from the remaining list
+             pathStars.splice(closestIndex, 1);
+
+             const line = closestStar.line; // The line belongs to the star being pointed TO
+              if (!line) { // Should not happen if created properly
+                 console.error("Missing line for star:", closestStar);
+                 currentStar = closestStar; // Move on even if line missing
+                 drawNextLine();
+                 return;
+              }
+
+              // Make sure line is in the SVG DOM
+             if (!line.parentNode) {
+                  svg.appendChild(line);
+             }
+
+             // Set line start point and make visible
+             line.setAttribute('x1', currentStar.x);
+             line.setAttribute('y1', currentStar.y);
+             // Ensure endpoint is initially same as start point before animation
+             line.setAttribute('x2', currentStar.x);
+             line.setAttribute('y2', currentStar.y);
+             line.setAttribute('opacity', '0.4'); // Make line slightly visible
+
+             let progress = 0;
+             const lineAnimation = setInterval(() => {
+                 progress += ANIMATION_LINE_SPEED;
+                 const currentX = currentStar.x + (closestStar.x - currentStar.x) * progress;
+                 const currentY = currentStar.y + (closestStar.y - currentStar.y) * progress;
+                 line.setAttribute('x2', currentX);
+                 line.setAttribute('y2', currentY);
+
+                 if (progress >= 1) {
+                     clearInterval(lineAnimation);
+                     line.setAttribute('x2', closestStar.x); // Snap to final position
+                     line.setAttribute('y2', closestStar.y);
+                     currentStar = closestStar; // Move to the next star
+                     drawNextLine(); // Continue drawing lines
+                 }
+             }, 16);
+        }
+        drawNextLine(); // Start the chaining process
+    }
+
+
+    // --- Event Handling ---
+
+    async function initiateConstellationFormation() {
+         if (isAnimating) return;
+         isAnimating = true;
+         button.disabled = true;
+
+         console.log("Initiating constellation formation...");
+         const success = await generateConstellations();
+         if(success) {
+            startWaveAnimation();
+            // Button will be re-enabled in animateConstellations finish estimate
+         } else {
+            isAnimating = false; // Re-enable immediately if generation failed
+            button.disabled = false;
+         }
+    }
+
+    function setLoadingState(isLoading, text) {
+        if(isLoading) {
+             loadingText.textContent = text;
+             loadingText.style.visibility = 'visible';
+        } else {
+            loadingText.textContent = '';
+             loadingText.style.visibility = 'hidden';
+        }
+    }
+
+  </script>
+</body>
+</html>
