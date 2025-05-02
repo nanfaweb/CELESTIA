@@ -136,7 +136,7 @@
     const SIZE = 70; // vh
     const STEP = SIZE / COUNT;
     const SPEED = 100; // seconds
-    const TIMEOUT_DURATION = 5000; // 5 seconds timeout
+    const TIMEOUT_DURATION = 3500; // 5 seconds timeout
 
     // Variables for auto-rotation
     let userInteracted = false;
@@ -211,22 +211,24 @@
 
     // Hide the loader after timeout
     function setupTimeout() {
-      let timeLeft = Math.floor(TIMEOUT_DURATION / 1000);
-      
-      // After timeout, fade out and redirect
+    let timeLeft = Math.floor(TIMEOUT_DURATION / 1000);
+
+    // After timeout, fade out and redirect
+    setTimeout(() => {
+      loader.style.opacity = "0";
+
+      // Redirect to the destination page
       setTimeout(() => {
-        loader.style.opacity = "0";
-        
-        // This is where you'd typically redirect to your main page
-        setTimeout(() => {
-          // Uncomment and modify the line below to redirect to another page
-          // window.location.href = 'main.html';
-          
-          // For now, just hide the loader
-          loader.style.display = "none";
-        }, 800);
-      }, TIMEOUT_DURATION);
-    }
+        const destination = sessionStorage.getItem('destinationAfterLoad');
+        if (destination) {
+          sessionStorage.removeItem('destinationAfterLoad');
+          window.location.href = destination;
+        } else {
+          window.location.href = '/'; // Default fallback
+        }
+      }, 800);
+    }, TIMEOUT_DURATION);
+  }
 
     // Initialize the application
     function init() {

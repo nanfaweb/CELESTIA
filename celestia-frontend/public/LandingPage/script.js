@@ -8,10 +8,10 @@ function redirectWithLoader(targetUrl) {
     
     if (currentPath.includes('/LandingPage/')) {
         // If we're in LandingPage, go up one level to public
-        loaderPath = '../Loader/loader.html';
+        loaderPath = '../Loader/loaderv2.html';
     } else {
         // Default path from root
-        loaderPath = '/Loader/loader.html';
+        loaderPath = '/Loader/loaderv2.html';
     }
     
     window.location.href = loaderPath;
