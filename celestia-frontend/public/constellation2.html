@@ -61,13 +61,33 @@
         opacity: 0.5;
     }
 
+    /* Tooltip Styles */
+    .tooltip {
+        position: fixed;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        pointer-events: none;
+        z-index: 1000;
+        display: none;
+        font-family: sans-serif;
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        box-shadow: 0 0 15px rgba(160, 48, 240, 0.3);
+        border: 1px solid rgba(160, 48, 240, 0.2);
+        transition: all 0.2s ease;
+    }
+
   </style>
 </head>
 <body>
   <svg id="night-sky"></svg>
+  <div class="tooltip" id="tooltip"></div>
+
   <div class="controls">
-      <div id="loading-text"></div>
-      <button id="action-button" class="button" onclick="initiateConstellationFormation()">Weave Constellations</button>
+    <div id="loading-text"></div>
+    <button id="action-button" class="button" onclick="initiateConstellationFormation()">Weave Constellations</button>
   </div>
 
   <script>
@@ -146,78 +166,82 @@
          svg.innerHTML = ''; // Clear SVG content
     }
 
-    function createStar(cx, cy, r, fill, isUserStar, constellationId = null, id = null) {
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('cx', cx);
-      circle.setAttribute('cy', cy);
-      circle.setAttribute('r', r);
-      circle.setAttribute('fill', fill);
-      circle.style.transition = 'opacity 0.5s, fill 0.5s';
-      if (id) {
-        circle.id = id;
-      }
-      return circle;
+    function createStar(cx, cy, r, fill, isUserStar, name = null) {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r', r);
+        circle.setAttribute('fill', fill);
+        circle.style.transition = 'opacity 0.5s, fill 0.5s';
+
+        // Tooltip logic
+        const tooltip = document.getElementById('tooltip');
+        circle.addEventListener('mouseenter', (e) => {
+            console.log(`Hovering over star: ${name || `(${Math.round(cx)}, ${Math.round(cy)})`}`); // Debugging
+            tooltip.textContent = name ? `${name}` : `Mysterious Star at (${Math.round(cx)}, ${Math.round(cy)})`;
+            tooltip.style.display = 'block';
+            tooltip.style.left = `${e.pageX + 10}px`;
+            tooltip.style.top = `${e.pageY + 10}px`;
+        });
+
+        circle.addEventListener('mousemove', (e) => {
+            tooltip.style.left = `${e.pageX + 10}px`;
+            tooltip.style.top = `${e.pageY + 10}px`;
+        });
+
+        circle.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none';
+        });
+
+        return circle;
     }
 
-     function createLine(startX, startY) {
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', startX);
-        line.setAttribute('y1', startY);
-        line.setAttribute('x2', startX); // Initially end where it starts
-        line.setAttribute('y2', startY);
-        line.setAttribute('stroke', '#FFE135'); // Line color matching bright stars
-        line.setAttribute('stroke-width', '1');
-        line.setAttribute('stroke-linecap', 'round');
-        line.setAttribute('opacity', '0'); // Start invisible
-        line.style.transition = 'opacity 0.3s';
-        svg.appendChild(line);
-        return line;
-     }
+    function createLine(startX, startY) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', startX);
+      line.setAttribute('y1', startY);
+      line.setAttribute('x2', startX); // Initially end where it starts
+      line.setAttribute('y2', startY);
+      line.setAttribute('stroke', '#FFE135'); // Line color matching bright stars
+      line.setAttribute('stroke-width', '1');
+      line.setAttribute('stroke-linecap', 'round');
+      line.setAttribute('opacity', '0'); // Start invisible
+      line.style.transition = 'opacity 0.3s';
+      svg.appendChild(line);
+      return line;
+  }
 
     // --- Simulation and Logic ---
 
     // Simulate fetching data from the backend
-    async function fetchUserCountFromBackend() {
-        // **REPLACE THIS:** In a real app, fetch from your API
-        // e.g., const response = await fetch('/api/user-count');
-        //      const data = await response.json();
-        //      return data.count;
-        console.log("Simulating backend call for user count...");
-        return new Promise(resolve => {
-            setTimeout(() => {
-                const count = Math.floor(Math.random() * 30) + 5; // Random count between 5 and 34
-                console.log("Simulated count received:", count);
-                resolve(count);
-            }, 800); // Simulate network delay
-        });
+    async function fetchUserDataFromBackend() {
+    try {
+        const response = await fetch('http://localhost:3001/api/users'); // Replace with your backend URL
+        if (!response.ok) throw new Error('Failed to fetch users');
+        const users = await response.json();
+        console.log("Fetched users:", users);
+        return users; // Return the list of users
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        return []; // Return an empty array if there's an error
     }
+}
 
     async function generateConstellations() {
         setLoadingState(true, "Fetching user data...");
-        const totalUserCount = await fetchUserCountFromBackend();
-        const numOtherUsers = totalUserCount - 1;
+        const users = await fetchUserDataFromBackend();
+        const numOtherUsers = users.length;
 
         if (numOtherUsers < MIN_STARS_PER_CONSTELLATION) {
             setLoadingState(false, `Need at least ${MIN_STARS_PER_CONSTELLATION} other users for a constellation. Found: ${numOtherUsers}`);
             console.warn("Not enough users for a constellation.");
-            // Clear existing user stars/constellations if any
-            stars = stars.filter(s => !s.isUserStar); // Keep only background
-            const userStarsElements = svg.querySelectorAll('circle:not([id="user-star"]):not([fill="#6b7280"])'); // Quick way to find user stars (not robust)
-            userStarsElements.forEach(el => el.remove());
-            const lineElements = svg.querySelectorAll('line');
-            lineElements.forEach(el => el.remove());
-            constellations = [];
             return false; // Indicate failure
         }
 
         setLoadingState(true, "Generating constellation coordinates...");
 
-        // Clear previous user stars & constellations (but keep background stars)
+        // Clear previous user stars & constellations
         stars = stars.filter(s => !s.isUserStar);
-        const userStarsElements = svg.querySelectorAll('circle:not([id="user-star"]):not([fill="#6b7280"])'); // Target previous bright stars
-        userStarsElements.forEach(el => el.remove());
-        const lineElements = svg.querySelectorAll('line');
-        lineElements.forEach(el => el.remove());
         constellations = [];
 
         let starsToPlace = numOtherUsers;
@@ -234,42 +258,36 @@
 
             // Generate a safe random center for the constellation
             let validCenter = false;
-            while(!validCenter) {
+            while (!validCenter) {
                 constellation.centerX = Math.random() * (windowWidth - 2 * CONSTELLATION_PADDING) + CONSTELLATION_PADDING;
                 constellation.centerY = Math.random() * (windowHeight - 2 * CONSTELLATION_PADDING) + CONSTELLATION_PADDING;
-                // Basic check to avoid being too close to the user's center star
                 if (Math.hypot(constellation.centerX - centerX, constellation.centerY - centerY) > CONSTELLATION_PADDING * 1.5) {
-                     validCenter = true;
+                    validCenter = true;
                 }
-                // Could add checks against other constellation centers here if needed
             }
 
-
-            // Decide how many stars for this constellation (could be more complex)
-            const numStarsThisConst = MIN_STARS_PER_CONSTELLATION + (constellationIdCounter === 1 ? starsToPlace % MIN_STARS_PER_CONSTELLATION : 0); // Add remainder to the first one maybe
-            // OR simple fixed size: const numStarsThisConst = MIN_STARS_PER_CONSTELLATION;
-
+            const numStarsThisConst = MIN_STARS_PER_CONSTELLATION;
             for (let i = 0; i < numStarsThisConst && starsToPlace > 0; i++) {
+                const user = users.pop(); // Get a user from the list
                 const angle = Math.random() * Math.PI * 2;
                 const radiusOffset = Math.random() * CONSTELLATION_SPREAD_RADIUS;
                 const x = constellation.centerX + Math.cos(angle) * radiusOffset;
                 const y = constellation.centerY + Math.sin(angle) * radiusOffset;
-                const size = 2.5; // User stars are slightly smaller than center
+                const size = 2.5;
 
-                const starObj = { x, y, size, isUserStar: true, constellationId: constellation.id };
-                starObj.element = createStar(x, y, size, '#6b7280', true); // Start dim
-                starObj.line = createLine(x, y); // Line associated with the star it *points to*
+                const starObj = { x, y, size, isUserStar: true, constellationId: constellation.id, name: user.name };
+                starObj.element = createStar(x, y, size, '#6b7280', true, user.name); // Pass user name to the star
+                starObj.line = createLine(x, y); // Create a line for the star
                 stars.push(starObj);
                 constellation.stars.push(starObj);
-                svg.appendChild(starObj.element); // Add star to SVG
-                 // Don't add line to SVG until it's animated
+                svg.appendChild(starObj.element);
             }
             constellations.push(constellation);
             starsToPlace -= numStarsThisConst;
         }
-         console.log(`Generated ${constellations.length} constellations.`);
-         setLoadingState(false, ""); // Clear loading text
-         return true; // Indicate success
+
+        setLoadingState(false, "");
+        return true; // Indicate success
     }
 
 
