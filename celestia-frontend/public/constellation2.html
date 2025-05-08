@@ -441,21 +441,32 @@
 
     // --- Event Handling ---
 
-    async function initiateConstellationFormation() {
-         if (isAnimating) return;
-         isAnimating = true;
-         button.disabled = true;
+      async function initiateConstellationFormation() {
+    if (isAnimating) return; // Prevent multiple clicks during animation
+    isAnimating = true;
+    button.disabled = true;
 
-         console.log("Initiating constellation formation...");
-         const success = await generateConstellations();
-         if(success) {
-            startWaveAnimation();
-            // Button will be re-enabled in animateConstellations finish estimate
-         } else {
-            isAnimating = false; // Re-enable immediately if generation failed
-            button.disabled = false;
-         }
+    console.log("Resetting scene and initiating constellation formation...");
+    resetScene(); // Clear the current stars and constellations
+    setupScene(); // Reinitialize the scene with background stars
+
+    const success = await generateConstellations();
+    if (success) {
+        startWaveAnimation();
+        // Button will be re-enabled in `animateConstellations` finish estimate
+    } else {
+        isAnimating = false; // Re-enable immediately if generation failed
+        button.disabled = false;
     }
+}
+
+function resetScene() {
+    stars = [];
+    constellations = [];
+    backgroundStars = [];
+    userStarElement = null;
+    svg.innerHTML = ''; // Clear all SVG content
+}
 
     function setLoadingState(isLoading, text) {
         if(isLoading) {
